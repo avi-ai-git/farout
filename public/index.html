@@ -2254,16 +2254,16 @@
 
   /* ======================= MOBILE NAV — compact bar ======================= */
   @media (max-width: 768px) {
-    .nav { flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 12px; }
+    .nav { flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 14px; }
     .brand { font-size: 17px; flex: 1 1 auto; }
     .brand .sub { display: none; }
     .key-btn { display: none; }
-    .nav-right { width: 100%; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-start; }
-    .audio-btn { flex: 0 0 auto; min-height: 40px; padding: 8px 12px; }
-    .date-control-group { flex: 1 1 240px; width: auto; display: flex; flex-wrap: nowrap; gap: 6px; align-items: center; }
-    .date-control-group .date-nav { width: auto; flex: 1 1 auto; display: flex; gap: 4px; order: 0; }
-    .date-nav .date-nav-btn { flex: 1 1 0; min-height: 40px; padding: 8px 4px; justify-content: center; white-space: nowrap; font-size: 11px; }
-    .date-control-group .date-pill { width: auto; flex: 1 1 auto; order: 0; padding: 8px 10px; }
+    .nav-right { display: contents; }
+    .audio-btn { order: 1; flex: 0 0 auto; min-height: 40px; padding: 8px 14px; pointer-events: auto; }
+    .date-control-group { order: 2; flex: 0 0 100%; width: 100%; display: flex; flex-wrap: nowrap; gap: 6px; align-items: stretch; pointer-events: auto; }
+    .date-control-group .date-nav { flex: 0 0 auto; display: flex; gap: 4px; }
+    .date-nav .date-nav-btn { min-height: 42px; padding: 8px 11px; font-size: 11px; white-space: nowrap; justify-content: center; }
+    .date-control-group .date-pill { flex: 1 1 auto; min-width: 0; padding: 8px 12px; justify-content: center; }
     .date-pill .label { display: none; }
     .date-pill input[type="date"] { width: 100%; min-width: 0; }
   }
