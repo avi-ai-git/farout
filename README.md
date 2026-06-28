@@ -17,6 +17,7 @@ Anyone who finds NASA's public data interesting but has never had a single place
 | APOD | api.nasa.gov/planetary/apod | Daily cosmos image |
 | NeoWs | api.nasa.gov/neo/rest/v1/feed | Near-Earth asteroid data |
 | EPIC | api.nasa.gov/EPIC/api/natural | Full-disk Earth imagery (DSCOVR) |
+| Mars Rovers | api.nasa.gov/mars-photos | Curiosity / Perseverance surface frames |
 | NASA Image Library | images-api.nasa.gov | Mission archive imagery |
 
 ## Features
@@ -25,7 +26,8 @@ Anyone who finds NASA's public data interesting but has never had a single place
 - **Today's Briefing Overview** — 4-card status panel showing live module state
 - **Last 7 Signals** — Horizontal scroll of the past 7 days of APOD
 - **Asteroid Watch** — Near-Earth object data: count, closest approach, miss distance in km and lunar distances, hazard status with calm explanation
-- **Earth Pulse** — Full-disk Earth photo from NASA's EPIC camera on the DSCOVR satellite
+- **Earth Pulse** — Full-disk Earth photo from NASA's EPIC camera on the DSCOVR satellite, matching the selected date (falls back to the nearest available frame when EPIC has no capture for that day)
+- **Mars Surface** — Frames from NASA's active Mars rovers (Curiosity, Perseverance) for the selected date, with a `latest_photos` fallback when no transmission landed that day
 - **Planetary Archive** — NASA Image Library search by rotating theme
 - **Mission Brief Card** — Compiled daily summary with one-click copy for LinkedIn and X
 - **Demo Mode** — Guided presentation mode for screen recording with captions, auto-advance, and keyboard controls
@@ -34,17 +36,26 @@ Anyone who finds NASA's public data interesting but has never had a single place
 - **Custom reticle** — Parallax cursor with coordinate display
 - **Lightbox** — Click any image for full metadata view
 - **Date picker** — Browse any past date
+- **PWA** — Installable on phones and desktops; offline-cached shell, never stale NASA data
+- **/api/health** — Endpoint reporting NASA upstream reachability and key configuration
 
 ## Architecture
 
 ```
-├── public/index.html     Full FAROUT frontend (vanilla HTML/CSS/JS)
-└── api/                  Vercel serverless functions — NASA API proxy
-    ├── apod.ts           Astronomy Picture of the Day
-    ├── apod-range.ts     APOD range (Last 7 Signals)
-    ├── asteroids.ts      NeoWs near-Earth objects
-    ├── library.ts        NASA Image Library search
-    └── epic.ts           DSCOVR EPIC full-disk Earth imagery
+├── public/
+│   ├── index.html              Full FAROUT frontend (vanilla HTML/CSS/JS)
+│   ├── manifest.webmanifest    PWA manifest
+│   ├── sw.js                   Service worker (shell cache, never caches /api/*)
+│   ├── icon.svg                Standard app icon
+│   └── icon-maskable.svg       Maskable icon (Android adaptive)
+└── api/                        Vercel serverless functions — NASA API proxy
+    ├── apod.ts                 Astronomy Picture of the Day
+    ├── apod-range.ts           APOD range (Last 7 Signals)
+    ├── asteroids.ts            NeoWs near-Earth objects
+    ├── library.ts              NASA Image Library search
+    ├── epic.ts                 DSCOVR EPIC full-disk Earth imagery (date-aware, falls back to nearest frame)
+    ├── mars.ts                 Mars rover surface photos (Curiosity, Perseverance)
+    └── health.ts               Upstream + key health check
 ```
 
 The serverless functions act as a secure proxy — all NASA API calls are made server-side. The NASA API key lives in a Vercel encrypted environment variable and never reaches the browser.
@@ -88,17 +99,16 @@ The app was later migrated from a Replit-hosted Express + pnpm-monorepo setup to
 
 ## Known Limitations
 
-- EPIC imagery is typically 1–3 days behind the current date (NASA processing delay)
+- EPIC imagery is typically 1–3 days behind the current date (NASA processing delay). When the selected date has no EPIC capture, FAROUT shows the nearest available frame and labels it as such.
+- Mars rover imagery is not transmitted every Earth day. When no frames were downlinked for the selected date, FAROUT shows the rover's latest transmission and labels it as such.
 - NASA DEMO_KEY is rate-limited to 30 requests/hour
 - The app is frontend-only — no database, no user accounts
 - Mission Brief Card is text-only (no image export)
-- Earth Pulse always shows the latest available EPIC image regardless of selected date
 
 ## Future Roadmap
 
-- Earth Pulse date-aware: show EPIC imagery matching the selected date
 - Mission Brief Card image export (canvas-based)
-- Mars surface imagery via NASA Mars Rovers API
 - ISS current position overlay
 - Notification mode: "something unusual is happening today"
-- PWA support for home screen installation
+- More rovers as NASA exposes them (e.g. Ingenuity flight logs)
+- Themeable accent color per date / mission era

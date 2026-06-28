@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#000"/>
+  <circle cx="256" cy="256" r="148" fill="none" stroke="#ffb464" stroke-width="3" opacity="0.35"/>
+  <circle cx="256" cy="256" r="120" fill="none" stroke="#ffb464" stroke-width="2" opacity="0.55"/>
+  <circle cx="256" cy="256" r="90"  fill="none" stroke="#ffb464" stroke-width="2" opacity="0.8"/>
+  <circle cx="256" cy="256" r="20"  fill="#ffb464"/>
+  <text x="256" y="448" text-anchor="middle"
+        font-family="'IBM Plex Mono', ui-monospace, monospace"
+        font-size="44" letter-spacing="8" fill="#ede8de" font-weight="600">FAROUT</text>
+</svg>

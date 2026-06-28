@@ -34,6 +34,7 @@ const TYPES = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css',
   '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml',
   '.ico': 'image/x-icon', '.json': 'application/json',
+  '.webmanifest': 'application/manifest+json',
 };
 
 const handlers = {};

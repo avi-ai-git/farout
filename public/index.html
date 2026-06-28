@@ -4,6 +4,14 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>FAROUT — The sky on any date that matters</title>
+<meta name="description" content="NASA's open data, turned into a daily cinematic mission briefing." />
+<meta name="theme-color" content="#000000" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<link rel="icon" type="image/svg+xml" href="/icon.svg" />
+<link rel="apple-touch-icon" href="/icon.svg" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="FAROUT" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,700;0,9..144,900;1,9..144,300;1,9..144,400&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -958,6 +966,126 @@
     .ep-globe-wrap { min-height: 60vw; }
     .ep-meta { padding: 60px 24px 40px; }
     .ep-globe { width: 70%; }
+  }
+
+  /* ======================= MARS SURFACE ======================= */
+  .mars-section {
+    padding: 0;
+    background: #000;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    overflow: hidden;
+    position: relative;
+  }
+  .mars-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 80vh;
+    max-width: 100%;
+  }
+  .mars-meta {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 100px 70px 100px 60px;
+    position: relative;
+    z-index: 2;
+  }
+  .mars-eyebrow {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .34em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .mars-ping {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    animation: terminalPulse 2s infinite alternate;
+    flex-shrink: 0;
+  }
+  .mars-title {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(48px, 5.5vw, 96px);
+    letter-spacing: -.02em;
+    line-height: .95;
+    margin: 0 0 20px 0;
+  }
+  .mars-title em { font-style: italic; color: var(--accent); font-weight: 300; }
+  .mars-subtitle {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: clamp(18px, 1.4vw, 24px);
+    color: var(--ink-dim);
+    margin: 0 0 28px 0;
+    letter-spacing: -.005em;
+  }
+  .mars-explain {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: .03em;
+    line-height: 1.9;
+    color: var(--ink-faint);
+    max-width: 58ch;
+    margin-bottom: 44px;
+    padding-left: 14px;
+    border-left: 2px solid rgba(255,180,100,0.2);
+  }
+  .mars-data { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 28px; margin-bottom: 18px; }
+  .mars-row { display: flex; flex-direction: column; gap: 6px; }
+  .mars-k {
+    font-family: var(--mono); font-size: 9px; letter-spacing: .28em;
+    text-transform: uppercase; color: var(--ink-faint);
+  }
+  .mars-v { font-family: var(--mono); font-size: 13px; letter-spacing: .04em; color: var(--ink); }
+  .mars-unavail {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .08em; color: var(--ink-faint);
+    padding: 14px 18px; border: 1px solid var(--line); display: inline-block; margin-top: 8px;
+  }
+  .mars-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    padding: 32px;
+    align-content: center;
+    align-self: stretch;
+    background: linear-gradient(135deg, #110804 0%, #050202 60%, #000 100%);
+  }
+  .mars-tile {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    background: #1a0d05;
+    border: 1px solid rgba(255,180,100,0.06);
+    cursor: none;
+    transition: transform .3s var(--ease), border-color .3s;
+  }
+  .mars-tile:hover { transform: scale(1.02); border-color: rgba(255,180,100,0.4); }
+  .mars-tile img {
+    width: 100%; height: 100%; object-fit: cover;
+    opacity: 0; transition: opacity .6s var(--ease);
+  }
+  .mars-tile img.loaded { opacity: 1; }
+  .mars-tile .mars-cam {
+    position: absolute; left: 8px; bottom: 8px;
+    font-family: var(--mono); font-size: 8px; letter-spacing: .22em;
+    text-transform: uppercase; color: rgba(237,232,222,0.85);
+    background: rgba(0,0,0,0.55); padding: 4px 6px;
+    pointer-events: none;
+  }
+  @media (hover: none) { .mars-tile { cursor: pointer; } }
+  @media (max-width: 1024px) {
+    .mars-inner { grid-template-columns: 1fr; }
+    .mars-meta { padding: 60px 24px 24px; }
+    .mars-grid { padding: 18px; grid-template-columns: repeat(2, 1fr); }
   }
 
   /* ======================= MISSION BRIEF CARD ======================= */
@@ -2433,6 +2561,17 @@
           <button class="bc-enter" data-clickable>Enter Room</button>
         </div>
       </div>
+      <div class="bo-card" data-target="#mars-surface">
+        <div class="bc-num">Room 05 ·</div>
+        <div class="bc-icon">◐</div>
+        <div class="bc-title">Mars <em>Surface</em></div>
+        <div class="bc-desc">Frames from NASA's active Mars rovers — Curiosity and Perseverance — captured from the surface of another world.</div>
+        <div class="bc-curator">Postcards from another planet.</div>
+        <div class="bc-footer">
+          <span class="bc-status live">Live</span>
+          <button class="bc-enter" data-clickable>Enter Room</button>
+        </div>
+      </div>
       <div class="bo-card" data-target=".mbc-section">
         <div class="bc-num">Exit ·</div>
         <div class="bc-icon">◌</div>
@@ -2519,6 +2658,7 @@
           <div class="ep-row"><span class="ep-k">Satellite</span><span class="ep-v" id="ep-source">DSCOVR · L1 Lagrange Point</span></div>
           <div class="ep-row"><span class="ep-k">Earth Centroid</span><span class="ep-v" id="ep-centroid">—</span></div>
         </div>
+        <div class="ep-fallback" id="ep-fallback" style="display:none;margin-top:10px;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);opacity:.85;"></div>
         <div class="ep-caption" id="ep-caption"></div>
         <div class="ep-unavail" id="ep-unavail" style="display:none">Earth image unavailable for this date.</div>
       </div>
@@ -2529,6 +2669,27 @@
         <img class="ep-globe" id="ep-globe" src="" alt="Full-disk Earth image from NASA EPIC" loading="lazy" />
         <div class="ep-globe-veil"></div>
       </div>
+    </div>
+  </section>
+
+  <!-- Section 6.5: Mars Surface (NASA Mars Rovers) -->
+  <section class="mars-section" id="mars-surface">
+    <div class="mars-inner">
+      <div class="mars-meta">
+        <div class="mars-eyebrow"><span class="mars-ping"></span>Room 05 · Mars Surface · NASA Mars Rovers</div>
+        <h2 class="mars-title">Mars <em>Surface</em>.</h2>
+        <p class="mars-subtitle">Postcards from another planet.</p>
+        <div class="mars-explain">These frames were captured on the surface of Mars by NASA's rover fleet. Curiosity has been driving Gale Crater since 2012. Perseverance has been collecting samples in Jezero Crater since 2021. Each frame is light that left Mars, crossed roughly 200 million kilometres of empty space, and arrived at NASA's Deep Space Network minutes later.</div>
+        <div class="mars-data" id="mars-data">
+          <div class="mars-row"><span class="mars-k">Rover</span><span class="mars-v" id="mars-rover">—</span></div>
+          <div class="mars-row"><span class="mars-k">Sol</span><span class="mars-v" id="mars-sol">—</span></div>
+          <div class="mars-row"><span class="mars-k">Earth Date</span><span class="mars-v" id="mars-earthdate">—</span></div>
+          <div class="mars-row"><span class="mars-k">Frames Returned</span><span class="mars-v" id="mars-count">—</span></div>
+        </div>
+        <div class="mars-fallback" id="mars-fallback" style="display:none;margin-top:10px;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);opacity:.85;"></div>
+        <div class="mars-unavail" id="mars-unavail" style="display:none">Mars imagery unavailable for this date.</div>
+      </div>
+      <div class="mars-grid" id="mars-grid"></div>
     </div>
   </section>
 
@@ -2832,7 +2993,7 @@
   const state = {
     date: null,
     currentTopic: "Nebula",
-    data: { apod: null, recentApods: [], library: [], asteroid: null, epic: null },
+    data: { apod: null, recentApods: [], library: [], asteroid: null, epic: null, mars: null },
   };
 
   const $ = (s, r = document) => r.querySelector(s);
@@ -3192,8 +3353,15 @@
         };
       }).filter(x => x.thumb);
     },
-    async epic() {
-      return safeFetch(new URL('/api/epic', location.origin));
+    async epic(date) {
+      const u = new URL('/api/epic', location.origin);
+      if (date) u.searchParams.set('date', fmtDate(date));
+      return safeFetch(u);
+    },
+    async mars(date) {
+      const u = new URL('/api/mars', location.origin);
+      if (date) u.searchParams.set('date', fmtDate(date));
+      return safeFetch(u);
     }
   };
 
@@ -3702,7 +3870,28 @@
     // Date — strip seconds for cleanliness
     const dateStr = d.date ? d.date.replace(/:00$/, '').replace('T', ' ') : '—';
     const epDate = $('#ep-date');
-    if (epDate) epDate.textContent = dateStr + ' UTC';
+    if (epDate) {
+      epDate.textContent = dateStr + ' UTC';
+      if (d.isFallback && d.requestedDate) {
+        const reasonText = d.fallbackReason === 'no_imagery_for_requested_date'
+          ? `Nearest available — EPIC had no imagery for ${d.requestedDate}.`
+          : `Nearest available — EPIC processing is typically 1–3 days behind.`;
+        epDate.title = reasonText;
+      } else {
+        epDate.title = '';
+      }
+    }
+    const epFallback = $('#ep-fallback');
+    if (epFallback) {
+      if (d.isFallback && d.requestedDate) {
+        epFallback.textContent = d.fallbackReason === 'no_imagery_for_requested_date'
+          ? `Closest available frame · no EPIC capture on ${d.requestedDate}`
+          : `Closest available frame · EPIC processing trails by 1–3 days`;
+        epFallback.style.display = '';
+      } else {
+        epFallback.style.display = 'none';
+      }
+    }
 
     // Centroid
     const epCentroid = $('#ep-centroid');
@@ -3744,6 +3933,72 @@
     const data = $('#ep-data');
     if (unavail) unavail.style.display = '';
     if (data) data.style.display = 'none';
+  }
+
+  function renderMars(d) {
+    const grid     = $('#mars-grid');
+    const data     = $('#mars-data');
+    const unavail  = $('#mars-unavail');
+    const fallback = $('#mars-fallback');
+    const rover    = $('#mars-rover');
+    const sol      = $('#mars-sol');
+    const earthD   = $('#mars-earthdate');
+    const count    = $('#mars-count');
+
+    if (!d || d.error || !Array.isArray(d.photos) || d.photos.length === 0) {
+      if (grid) grid.innerHTML = '';
+      if (data) data.style.display = 'none';
+      if (unavail) unavail.style.display = '';
+      if (fallback) fallback.style.display = 'none';
+      return;
+    }
+    if (data) data.style.display = '';
+    if (unavail) unavail.style.display = 'none';
+
+    if (rover)  rover.textContent  = (d.rover || '—').replace(/^(.)/, (c) => c.toUpperCase());
+    if (sol)    sol.textContent    = d.sol != null ? `Sol ${d.sol}` : '—';
+    if (earthD) earthD.textContent = d.earthDate || '—';
+    if (count)  count.textContent  = `${d.count}${d.count === d.photos.length ? '' : ` · showing ${d.photos.length}`}`;
+
+    if (fallback) {
+      if (d.isFallback && d.requestedDate) {
+        fallback.textContent = `Latest rover transmission · no surface frames downlinked for ${d.requestedDate}`;
+        fallback.style.display = '';
+      } else {
+        fallback.style.display = 'none';
+      }
+    }
+
+    if (grid) {
+      grid.innerHTML = '';
+      for (const p of d.photos) {
+        const tile = document.createElement('button');
+        tile.type = 'button';
+        tile.className = 'mars-tile';
+        tile.setAttribute('data-clickable', '');
+        tile.dataset.lb = JSON.stringify({
+          src: p.url,
+          title: p.cameraFullName || p.cameraName || 'Mars surface frame',
+          desc: `Captured by NASA's ${d.rover} rover on Sol ${p.sol} (Earth date ${p.earthDate}).`,
+          eyebrow: `Mars Surface · ${d.rover}`,
+          meta: { 'Earth Date': p.earthDate, Sol: String(p.sol), Camera: p.cameraName || '—', Source: `NASA Mars Rovers / ${d.rover}` },
+        });
+        tile.addEventListener('click', () => {
+          try { openLB(JSON.parse(tile.dataset.lb)); } catch {}
+        });
+        const img = document.createElement('img');
+        img.loading = 'lazy';
+        img.alt = `Mars rover frame — ${p.cameraName || 'camera'} · sol ${p.sol}`;
+        img.onload = () => img.classList.add('loaded');
+        img.src = p.url;
+        const cam = document.createElement('div');
+        cam.className = 'mars-cam';
+        cam.textContent = p.cameraName || '';
+        tile.appendChild(img);
+        tile.appendChild(cam);
+        grid.appendChild(tile);
+      }
+    }
   }
 
   /* ======================= MISSION BRIEF CARD / EXHIBITION SNAPSHOT ======================= */
@@ -3794,7 +4049,9 @@
     let epicVal = 'Telemetry unavailable';
     if (epic && epic.date) {
       const d = epic.date.split(' ')[0];
-      epicVal = `Full-disk capture · ${d}`;
+      epicVal = epic.isFallback
+        ? `Full-disk capture · ${d} (closest available)`
+        : `Full-disk capture · ${d}`;
     }
     const el_epicVal = $('#mbc-epic-val');
     if (el_epicVal) el_epicVal.textContent = epicVal;
@@ -3907,6 +4164,7 @@ FAROUT turns one NASA date into a guided exhibition across four rooms: a daily i
     { sel: '#cine-lib',          label: 'Room 02 — Planetary Archive',    caption: 'The archive room re-curates NASA mission imagery by theme.', ms: 6000 },
     { sel: '#asteroid-watch',    label: 'Room 03 — Asteroid Watch',       caption: 'Asteroid Watch turns near-Earth object data into a readable pass.', ms: 6000 },
     { sel: '#earth-pulse',       label: 'Room 04 — Earth Pulse',          caption: 'Earth Pulse shows the view back home from deep space.', ms: 6000 },
+    { sel: '#mars-surface',      label: 'Room 05 — Mars Surface',         caption: 'Mars Surface relays the latest frames from NASA’s active rovers.', ms: 6000 },
     { sel: '#mbc-section',       label: 'Exhibition Snapshot',            caption: 'All four rooms compiled: signal, asteroids, Earth pulse, and archive.', ms: 6000 },
     { sel: '#build-log',         label: 'Build Log',                      caption: 'Built with Replit Agent from visual concept to working app.', ms: 6000 },
   ];
@@ -4354,12 +4612,13 @@ FAROUT turns one NASA date into a guided exhibition across four rooms: a daily i
     try { history.replaceState(null, '', location.pathname + '?d=' + fmtDate(d)); } catch {}
     const settle = (p) => p.then(v => ({ ok: true, v })).catch(e => ({ ok: false, e }));
     
-    const [apodR, timelineR, libR, neoR, epicR] = await Promise.all([
+    const [apodR, timelineR, libR, neoR, epicR, marsR] = await Promise.all([
       settle(API.apod(d)),
       settle(API.apodRange(d, 7)),
       settle(API.library(state.currentTopic, d)),
       settle(API.asteroids(d)),
-      settle(API.epic()),
+      settle(API.epic(d)),
+      settle(API.mars(d)),
     ]);
 
     if (apodR.ok) { state.data.apod = apodR.v; renderPrimaryAPOD(apodR.v); }
@@ -4372,6 +4631,7 @@ FAROUT turns one NASA date into a guided exhibition across four rooms: a daily i
     if (libR.ok) { state.data.library = libR.v; renderLibrary(libR.v); } else { renderLibrary([]); }
     if (neoR.ok) { state.data.asteroid = neoR.v; renderAsteroidWatch(neoR.v); } else { renderAsteroidWatchError(); }
     if (epicR.ok) { state.data.epic = epicR.v; renderEarthPulse(epicR.v); } else { renderEarthPulse_error(); }
+    if (marsR.ok) { state.data.mars = marsR.v; renderMars(marsR.v); } else { renderMars(null); }
     const todayStr = fmtDate(new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate())));
     const isToday = fmtDate(d) === todayStr;
     if (dateHelper) dateHelper.textContent = isToday ? "You're viewing today's NASA exhibition." : `Viewing the ${fmtDate(d)} exhibition. Choose a date to explore another.`;
@@ -4453,6 +4713,14 @@ FAROUT turns one NASA date into a guided exhibition across four rooms: a daily i
   }
 
   document.addEventListener('DOMContentLoaded', init);
+
+  // PWA: register the service worker for shell caching + installability.
+  // We skip registration on localhost dev to avoid stale shells while iterating.
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    });
+  }
 })();
 </script>
 </body>
