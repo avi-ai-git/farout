@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#000"/>
+  <circle cx="256" cy="256" r="160" fill="none" stroke="#edE8de" stroke-width="2" opacity="0.18"/>
+  <circle cx="256" cy="256" r="100" fill="none" stroke="#edE8de" stroke-width="2" opacity="0.28"/>
+  <circle cx="256" cy="256" r="40" fill="#ffb464"/>
+  <g fill="#edE8de" opacity="0.9">
+    <circle cx="120" cy="120" r="2"/>
+    <circle cx="400" cy="160" r="2"/>
+    <circle cx="380" cy="380" r="2"/>
+    <circle cx="140" cy="380" r="2"/>
+    <circle cx="90"  cy="260" r="1.5"/>
+    <circle cx="430" cy="300" r="1.5"/>
+    <circle cx="260" cy="80"  r="1.5"/>
+    <circle cx="250" cy="450" r="1.5"/>
+  </g>
+  <text x="256" y="486" text-anchor="middle"
+        font-family="ui-monospace, 'IBM Plex Mono', monospace"
+        font-size="32" font-weight="600" fill="#edE8de" letter-spacing="4">FAROUT</text>
+</svg>

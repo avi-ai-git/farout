@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#000"/>
+  <!-- Safe area: keep meaningful content inside the inner 80% (off-center mask) -->
+  <circle cx="256" cy="256" r="120" fill="none" stroke="#edE8de" stroke-width="3" opacity="0.22"/>
+  <circle cx="256" cy="256" r="76"  fill="none" stroke="#edE8de" stroke-width="3" opacity="0.34"/>
+  <circle cx="256" cy="256" r="32"  fill="#ffb464"/>
+</svg>
