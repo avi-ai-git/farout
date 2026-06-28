@@ -1,0 +1,12 @@
+{
+  "name": "farout",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "FAROUT — Daily Space Exhibition, powered by NASA Open APIs.",
+  "license": "MIT",
+  "devDependencies": {
+    "@vercel/node": "^5.1.0",
+    "typescript": "~5.9.2"
+  }
+}

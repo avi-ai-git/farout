@@ -1,0 +1,10 @@
+node_modules
+.git
+.canvas
+.config
+.local
+.agents
+attached_assets
+SOCIAL_POSTS.md
+SUBMISSION.md
+VIDEO_SCRIPT.md

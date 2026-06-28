@@ -1,0 +1,4443 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>FAROUT — The sky on any date that matters</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,700;0,9..144,900;1,9..144,300;1,9..144,400&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #000;
+    --bg-2: #0a0a0b;
+    --ink: #ede8de;
+    --ink-dim: #9a958c;
+    --ink-faint: #54504a;
+    --line: rgba(237, 232, 222, 0.12);
+    --line-strong: rgba(237, 232, 222, 0.28);
+    --accent: oklch(0.78 0.15 60);   /* sodium amber */
+    --accent-glow: rgba(255, 180, 100, 0.15);
+    --serif: "Fraunces", "Times New Roman", serif;
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+    --ease: cubic-bezier(.22,.61,.36,1);
+    --ease-out: cubic-bezier(.16,1,.3,1);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); scroll-behavior: smooth; max-width: 100%; overflow-x: hidden; }
+  body {
+    font-family: var(--serif);
+    font-feature-settings: "ss01", "ss02";
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    cursor: none;
+  }
+  @media (hover: none) { body { cursor: auto; } .reticle { display: none !important; } }
+
+  img { display: block; max-width: 100%; }
+  button { font: inherit; color: inherit; background: none; border: none; padding: 0; cursor: none; }
+  @media (hover: none) { button { cursor: pointer; } }
+  input { font: inherit; color: inherit; background: transparent; border: none; outline: none; }
+  a { color: inherit; text-decoration: none; cursor: none;}
+  @media (hover: none) { a { cursor: pointer; } }
+
+  /* ======================= CURSOR RETICLE ======================= */
+  .reticle {
+    position: fixed; top: 0; left: 0; width: 34px; height: 34px;
+    pointer-events: none; z-index: 9999;
+    transform: translate(-50%, -50%);
+    mix-blend-mode: difference;
+  }
+  .reticle::before, .reticle::after { content: ""; position: absolute; background: #fff; }
+  .reticle::before { left: 50%; top: -4px; bottom: -4px; width: 1px; transform: translateX(-50%); transition: top .3s, bottom .3s; }
+  .reticle::after { top: 50%; left: -4px; right: -4px; height: 1px; transform: translateY(-50%); transition: left .3s, right .3s; }
+  .reticle .ring {
+    position: absolute; inset: 8px; border: 1px solid rgba(255,255,255,0.4); border-radius: 50%;
+    transition: inset .3s var(--ease), border-color .3s;
+  }
+  .reticle.hover::before { top: 8px; bottom: 8px; }
+  .reticle.hover::after { left: 8px; right: 8px; }
+  .reticle.hover .ring { inset: -2px; border-color: #fff; border-style: dashed; animation: spin 4s linear infinite; }
+  .reticle .coord {
+    position: absolute; left: 26px; top: 26px; white-space: nowrap;
+    font-family: var(--mono); font-size: 10px; letter-spacing: .06em;
+    color: #fff; opacity: .8;
+  }
+  @keyframes spin { 100% { transform: rotate(360deg); } }
+
+  /* ======================= TOP NAV ======================= */
+  .nav {
+    position: fixed; inset: 0 0 auto 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 28px;
+    z-index: 100;
+    background: linear-gradient(to bottom, rgba(0,0,0,.9), rgba(0,0,0,0));
+    pointer-events: none;
+  }
+  .nav > * { pointer-events: auto; }
+  .brand {
+    display: flex; align-items: baseline; gap: 10px;
+    font-family: var(--serif); font-weight: 900; letter-spacing: -.01em;
+    font-size: 22px;
+  }
+  .brand .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); display: inline-block; transform: translateY(-3px); box-shadow: 0 0 10px var(--accent); }
+  .brand .sub { font-family: var(--mono); font-size: 10px; letter-spacing: .22em; color: var(--ink-dim); text-transform: uppercase; }
+
+  .layout-tabs {
+    display: flex; gap: 2px; padding: 4px;
+    border: 1px solid var(--line); border-radius: 999px;
+    background: rgba(0,0,0,.6); backdrop-filter: blur(12px);
+    font-family: var(--mono); font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+    flex-wrap: nowrap;
+  }
+  .layout-tabs button { padding: 8px 20px; border-radius: 999px; color: var(--ink-dim); transition: all .3s; }
+  .layout-tabs button:hover { color: var(--ink); background: rgba(255,255,255,0.05); }
+  .layout-tabs button:active { transform: scale(0.95); }
+  .layout-tabs button.active { background: var(--ink); color: #000; }
+
+  .nav-right { display: flex; align-items: center; gap: 12px; font-family: var(--mono); font-size: 10px; letter-spacing: .2em; color: var(--ink-dim); text-transform: uppercase; }
+  
+  .audio-btn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 16px; border: 1px solid var(--line); border-radius: 999px;
+    background: rgba(0,0,0,.6); backdrop-filter: blur(12px); transition: all 0.3s; color: var(--ink-faint);
+  }
+  .audio-btn.on { color: var(--accent); border-color: rgba(255,180,100,.3); }
+  .audio-btn .wave { display: flex; gap: 2px; height: 10px; align-items: center; }
+  .audio-btn .wave span { width: 2px; background: currentColor; height: 2px; transition: height 0.2s; }
+  .audio-btn.on .wave span { animation: wave 1s infinite alternate ease-in-out; }
+  .audio-btn.on .wave span:nth-child(2) { animation-delay: 0.2s; }
+  .audio-btn.on .wave span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes wave { 0% { height: 2px; } 100% { height: 10px; } }
+
+  .warp-btn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 16px; border: 1px solid var(--accent); border-radius: 999px;
+    background: rgba(255,180,100,0.1); color: var(--accent); backdrop-filter: blur(12px); transition: all 0.3s;
+  }
+  .warp-btn:hover { background: var(--accent); color: #000; box-shadow: 0 0 15px var(--accent-glow); }
+
+  .date-pill {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 16px; border: 1px solid var(--line); border-radius: 999px;
+    background: rgba(0,0,0,.6); backdrop-filter: blur(12px); transition: border-color 0.3s;
+  }
+  .date-pill:hover { border-color: rgba(255,255,255,0.4); }
+  .date-pill input[type="date"] {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .08em; color: var(--ink);
+    color-scheme: dark; width: 130px; cursor: none;
+  }
+  .date-pill .label { color: var(--ink-faint); }
+
+  /* ======================= DAY NAV BUTTONS ======================= */
+  .date-nav {
+    display: flex; align-items: center; gap: 2px;
+  }
+  .date-nav-btn {
+    display: flex; align-items: center;
+    padding: 8px 12px; border: 1px solid var(--line); border-radius: 999px;
+    background: rgba(0,0,0,.6); backdrop-filter: blur(12px);
+    font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--ink-dim); transition: all .25s; cursor: none;
+    white-space: nowrap;
+  }
+  .date-nav-btn:hover { border-color: rgba(255,255,255,0.3); color: var(--ink); background: rgba(255,255,255,0.06); }
+  .date-nav-btn:active { transform: scale(0.95); }
+  .date-nav-btn:disabled { opacity: 0.3; pointer-events: none; }
+  .date-nav-btn.today-btn { border-color: rgba(255,180,100,0.3); color: var(--accent); }
+  .date-nav-btn.today-btn:hover { background: rgba(255,180,100,0.08); border-color: var(--accent); }
+  .date-nav-btn.today-btn.is-today { background: rgba(255,180,100,0.10); border-color: var(--accent); }
+  @media (hover: none) { .date-nav-btn { cursor: pointer; } }
+
+  .date-control-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    max-width: 100%;
+  }
+  .date-control-group .date-nav {
+    flex: 0 1 auto;
+  }
+  .date-control-group .presenter-btn {
+    flex: 0 0 auto;
+  }
+  .date-control-group .date-pill {
+    flex: 0 1 auto;
+  }
+  .nav, .cinematic, .mission, .chapter, .librarygrid, .briefing-overview, .earth-pulse-section, .asteroid-watch, .placeholder-section, .build-log-section, .lightbox, .cr-wrap, .bl-inner, .ep-inner, .aw-inner, .cr-masthead, .hero-content, .brief-strip { max-width: 100%; }
+  .presenter-btn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 16px; border: 1px solid var(--line); border-radius: 999px;
+    background: rgba(0,0,0,.6); backdrop-filter: blur(12px); transition: all .25s;
+    font-family: var(--mono); font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--ink-dim);
+    white-space: nowrap;
+  }
+  .presenter-btn:hover { border-color: rgba(255,255,255,0.3); color: var(--ink); background: rgba(255,255,255,0.06); }
+  .presenter-btn.active { color: var(--accent); border-color: rgba(255,180,100,.3); background: rgba(255,180,100,0.08); }
+  .tour-shell {
+    position: fixed;
+    left: 20px;
+    bottom: 18px;
+    z-index: 260;
+    width: min(420px, calc(100vw - 40px));
+    pointer-events: none;
+  }
+  .tour-shell.active { pointer-events: auto; }
+  .tour-panel {
+    display: none;
+    border: 1px solid var(--line);
+    background: rgba(3,3,3,.92);
+    backdrop-filter: blur(14px);
+    padding: 14px 14px 12px;
+    box-shadow: 0 12px 40px rgba(0,0,0,.35);
+  }
+  .tour-shell.active .tour-panel { display: block; }
+  .tour-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+  .tour-label, .tour-progress, .tour-caption, .tour-hint {
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: .18em;
+  }
+  .tour-label { font-size: 10px; color: var(--accent); }
+  .tour-progress { font-size: 10px; color: var(--ink-faint); }
+  .tour-caption {
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--ink);
+    letter-spacing: .06em;
+    text-transform: none;
+    margin: 0 0 12px;
+  }
+  .tour-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .tour-btn {
+    flex: 1 1 84px;
+    padding: 9px 10px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: rgba(0,0,0,.55);
+    color: var(--ink-dim);
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+  }
+  .tour-btn:hover { border-color: rgba(255,180,100,.3); color: var(--ink); background: rgba(255,255,255,0.05); }
+  .tour-hint { font-size: 9px; color: var(--ink-faint); line-height: 1.5; }
+  @media (max-width: 768px) {
+    .tour-shell {
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      width: auto;
+    }
+    .tour-btn { flex: 1 1 calc(50% - 4px); }
+  }
+  .presenter-btn .demo-rec-dot-sm { width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; animation: none; }
+
+  .key-btn {
+    padding: 8px 16px; border: 1px solid var(--line); border-radius: 999px;
+    background: rgba(0,0,0,.6); backdrop-filter: blur(12px); transition: all .3s;
+  }
+  .key-btn:hover { border-color: var(--ink); color: var(--ink); background: rgba(255,255,255,0.1); }
+  .key-btn.has-key { color: var(--accent); border-color: rgba(255,180,100,.3); }
+
+  /* ======================= INTRO ======================= */
+  .intro {
+    position: fixed; inset: 0; z-index: 200; background: #000;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    transition: opacity 1.2s var(--ease), visibility 1.2s;
+  }
+  .intro.gone { opacity: 0; visibility: hidden; pointer-events: none; }
+  .intro .wordmark {
+    font-family: var(--serif); font-weight: 300; font-size: clamp(64px, 14vw, 220px);
+    letter-spacing: -.04em; line-height: .9; font-variation-settings: "opsz" 144;
+    display: flex; gap: .02em; text-shadow: 0 0 40px rgba(255,255,255,0.2);
+  }
+  .intro .wordmark span {
+    display: inline-block; opacity: 0; transform: translateY(40px) scale(0.95);
+    animation: letterIn 1.2s var(--ease-out) forwards;
+  }
+  .intro .wordmark span:nth-child(1) { animation-delay: .1s; }
+  .intro .wordmark span:nth-child(2) { animation-delay: .2s; }
+  .intro .wordmark span:nth-child(3) { animation-delay: .3s; }
+  .intro .wordmark span:nth-child(4) { animation-delay: .4s; }
+  .intro .wordmark span:nth-child(5) { animation-delay: .5s; }
+  .intro .wordmark span:nth-child(6) { animation-delay: .6s; }
+  @keyframes letterIn { to { opacity: 1; transform: translateY(0) scale(1); } }
+  
+  .intro .tagline { margin-top: 28px; font-family: var(--mono); font-size: 10px; letter-spacing: .3em; text-transform: uppercase; color: var(--ink-dim); opacity: 0; animation: fadeIn 1.2s 1.2s forwards; }
+  
+  .intro .skip {
+    margin-top: 48px; font-family: var(--mono); font-size: 11px; letter-spacing: .3em; text-transform: uppercase;
+    color: var(--accent); padding: 14px 32px; border: 1px solid var(--accent); border-radius: 999px;
+    background: rgba(255,180,100,0.05); opacity: 0; animation: pulseFade 2s 1.6s infinite alternate forwards;
+    transition: all .3s; cursor: none;
+  }
+  .intro .skip:hover { background: var(--accent); color: #000; box-shadow: 0 0 30px var(--accent-glow); }
+  @keyframes pulseFade { 0% { opacity: 0.5; } 100% { opacity: 1; } }
+
+  .intro .counter { margin-top: 32px; font-family: var(--mono); font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: var(--ink-faint); opacity: 0; animation: fadeIn 1s 2.4s forwards; }
+
+  /* Intro exit: amber scan-line sweeps across as the curtain fades */
+  .intro::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent 0%, var(--accent) 15%, var(--accent) 85%, transparent 100%);
+    width: 0;
+    opacity: 0.8;
+    transition: none;
+    pointer-events: none;
+  }
+  .intro.gone::after {
+    width: 100%;
+    transition: width 0.88s var(--ease-out);
+  }
+
+  .stars { position: absolute; inset: 0; overflow: hidden; perspective: 1000px; }
+  .stars span {
+    position: absolute; width: 2px; height: 2px; background: #fff; border-radius: 50%;
+    opacity: 0; animation: twinkle 4s infinite, drift 20s linear infinite;
+  }
+  @keyframes twinkle { 0%,100% { opacity: 0; } 50% { opacity: .8; } }
+  @keyframes drift { from { transform: translateZ(0); } to { transform: translateZ(200px); } }
+
+  /* ======================= SHARED ======================= */
+  .view { display: none; min-height: 100vh; min-height: 100dvh; animation: viewFade 0.6s var(--ease-out); }
+  .view.active { display: block; }
+  .view:not(.active) { display: none !important; }
+  @keyframes viewFade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  .loading {
+    position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 11px; letter-spacing: .3em; color: var(--ink-dim); text-transform: uppercase;
+    background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);
+    pointer-events: none; z-index: 50; transition: opacity .6s var(--ease-out), visibility .6s;
+  }
+  .loading.hidden { opacity: 0; visibility: hidden; }
+  .loading::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-right: 12px; animation: pulse 1s infinite alternate; box-shadow: 0 0 10px var(--accent); }
+  @keyframes pulse { to { opacity: .3; transform: scale(.6); } }
+
+  /* =============================================================
+     VIEW 1 — CINEMATIC (full-bleed hero, chapters scroll)
+     ============================================================= */
+  .cinematic .chapter { position: relative; height: 100vh; height: 100dvh; display: flex; overflow: hidden; }
+  
+  /* Parallax Wrapper */
+  .cinematic .parallax-wrapper {
+    position: absolute; inset: -5%; z-index: 1; width: 110%; height: 110%;
+    transition: transform 0.1s ease-out;
+  }
+  .cinematic .hero-bg {
+    position: absolute; inset: 0; background-size: cover; background-position: center;
+    transform: scale(1.05); animation: kenburns 40s ease-out infinite alternate;
+  }
+  @keyframes kenburns { from { transform: scale(1.02); } to { transform: scale(1.1); } }
+  
+  .cinematic .hero-veil { position: absolute; inset: 0; z-index: 2; background: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,.2) 50%, rgba(0,0,0,0) 80%), linear-gradient(to right, rgba(0,0,0,.8) 0%, rgba(0,0,0,0) 50%); }
+  
+  .cinematic .hero-content {
+    position: relative; z-index: 3; width: 100%; padding: 0 60px 120px 60px; display: flex; flex-direction: column; justify-content: flex-end;
+  }
+  .cinematic .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .32em; text-transform: uppercase; color: var(--accent); margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
+  .cinematic .eyebrow .tick { width: 24px; height: 1px; background: var(--accent); display: inline-block; }
+
+  .cinematic h1 {
+    font-family: var(--serif); font-weight: 400; font-variation-settings: "opsz" 144;
+    font-size: clamp(54px, 9vw, 140px); line-height: .9; letter-spacing: -.02em;
+    margin: 0 0 28px 0; max-width: 16ch; text-wrap: balance; text-shadow: 0 4px 40px rgba(0,0,0,0.8);
+  }
+  .cinematic h1 em { font-style: italic; font-weight: 300; color: var(--accent); }
+
+  .cinematic .meta-row {
+    display: flex; gap: 48px; flex-wrap: wrap; font-family: var(--mono); font-size: 11px; letter-spacing: .08em; color: var(--ink-dim);
+    padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.15); max-width: 900px;
+  }
+  .cinematic .meta-row .k { color: var(--ink-faint); text-transform: uppercase; letter-spacing: .22em; display: block; margin-bottom: 8px; font-size: 10px; }
+  .cinematic .meta-row .v { color: var(--ink); font-size: 13px; font-weight: 500;}
+
+  .cinematic .description { margin-top: 24px; font-family: var(--serif); font-weight: 300; font-size: clamp(16px, 1.25vw, 21px); line-height: 1.7; max-width: 64ch; color: var(--ink-dim); text-shadow: 0 2px 20px rgba(0,0,0,0.9); }
+
+  .cinematic .scroll-hint {
+    position: absolute; left: 50%; bottom: 40px; transform: translateX(-50%); font-family: var(--mono); font-size: 10px; letter-spacing: .3em; text-transform: uppercase; color: var(--ink-faint);
+    z-index: 4; display: flex; flex-direction: column; align-items: center; gap: 12px;
+  }
+  .cinematic .scroll-hint::after { content: ''; width: 1px; height: 30px; background: linear-gradient(to bottom, var(--ink-faint), transparent); animation: drop 2s infinite; }
+  @keyframes drop { 0% { transform: scaleY(0); transform-origin: top; } 50% { transform: scaleY(1); transform-origin: top; } 50.1% { transform: scaleY(1); transform-origin: bottom; } 100% { transform: scaleY(0); transform-origin: bottom; } }
+
+  /* Gallery Chapters */
+  .cinematic .gallery-chapter {
+    padding: 120px 60px; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; justify-content: center;
+    background: #000; border-top: 1px solid rgba(255,255,255,0.05);
+  }
+  .cinematic .gallery-header { margin-bottom: 60px; display: flex; justify-content: space-between; align-items: flex-end; }
+  .cinematic .gallery-header h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(40px, 4.5vw, 84px); margin: 0; letter-spacing: -.02em; }
+  .cinematic .gallery-header h2 em { font-style: italic; color: var(--accent); }
+  .cinematic .gallery-header .sub { font-family: var(--mono); font-size: 11px; letter-spacing: .24em; text-transform: uppercase; color: var(--ink-faint); max-width: 320px; text-align: right; line-height: 1.6;}
+
+  /* Horizontal Snap Gallery */
+  .horizontal-scroll {
+    display: flex; gap: 32px; overflow-x: auto; padding-bottom: 40px; scroll-snap-type: x proximity;
+    scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch;
+    padding-inline: 24px; margin-inline: -24px; scroll-padding-inline: 24px; position: relative;
+  }
+  .horizontal-scroll::-webkit-scrollbar { height: 0; }
+  .horizontal-scroll::before,
+  .horizontal-scroll::after {
+    content: '';
+    position: sticky;
+    top: 0;
+    width: 44px;
+    flex: 0 0 44px;
+    pointer-events: none;
+    z-index: 2;
+    margin-inline: -44px;
+  }
+  .horizontal-scroll::before { left: 0; background: linear-gradient(to right, #000 15%, rgba(0,0,0,0)); }
+  .horizontal-scroll::after { right: 0; background: linear-gradient(to left, #000 15%, rgba(0,0,0,0)); }
+  
+  .card-lg {
+    flex: 0 0 650px; max-width: 85vw; aspect-ratio: 16/10; position: relative; scroll-snap-align: start; scroll-snap-stop: always;
+    border: 1px solid var(--line); background: #0a0a0a; overflow: hidden; transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .card-lg:hover, .card-lg:focus-visible, .card-lg.is-active { border-color: rgba(255,180,100,.32); box-shadow: 0 30px 60px rgba(0,0,0,0.9); transform: translateY(-8px) scale(1.01); z-index: 10;}
+  .card-lg img { width: 100%; height: 100%; object-fit: cover; transition: transform 2s ease-out, filter 0.6s, opacity 0.3s; filter: brightness(0.68) saturate(0.8); }
+  .card-lg:hover img, .card-lg:focus-visible img, .card-lg.is-active img { transform: scale(1.08); filter: brightness(1.08) saturate(1.15); }
+  .gallery-shell {
+    position: relative;
+  }
+  .gallery-shell::before,
+  .gallery-shell::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 40px;
+    width: 72px;
+    pointer-events: none;
+    z-index: 3;
+  }
+  .gallery-shell::before {
+    left: 0;
+    background: linear-gradient(to right, rgba(0,0,0,0.9), rgba(0,0,0,0));
+  }
+  .gallery-shell::after {
+    right: 0;
+    background: linear-gradient(to left, rgba(0,0,0,0.9), rgba(0,0,0,0));
+  }
+  .gallery-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 18px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .24em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .gallery-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: rgba(255,255,255,0.02);
+    color: var(--ink-dim);
+    transition: all .2s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .gallery-nav-btn:hover { border-color: rgba(255,180,100,.28); color: var(--accent); background: rgba(255,180,100,0.06); }
+  .gallery-nav-btn:disabled { opacity: .3; pointer-events: none; }
+  .card-lg .info {
+    position: absolute; bottom: 0; left: 0; right: 0; padding: 60px 40px 30px;
+    background: linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.4) 60%, transparent);
+    transform: translateY(20px); opacity: 0; transition: all 0.5s ease-out;
+  }
+  .card-lg:hover .info { transform: translateY(0); opacity: 1; }
+  .card-lg .info .date { font-family: var(--mono); font-size: 11px; letter-spacing: .24em; color: var(--accent); margin-bottom: 12px; text-transform: uppercase; display: flex; align-items:center; gap:8px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);}
+  .card-lg .info .date::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--accent); }
+  .card-lg .info h3 { font-family: var(--serif); font-size: 28px; font-weight: 400; margin: 0; line-height: 1.1; text-shadow: 0 2px 4px rgba(0,0,0,0.88); }
+
+  /* 7 Signals: staggered entrance on first render */
+  @keyframes galleryCardIn {
+    from { opacity: 0; transform: translateY(14px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  #cine-gallery-scroll .card-lg {
+    animation: galleryCardIn 0.72s var(--ease-out) both;
+    animation-delay: calc(var(--i, 0) * 75ms);
+  }
+
+  /* Library grid chapter */
+  .cinematic .librarygrid {
+    padding: 108px 60px 96px;
+    background: linear-gradient(to bottom, #000 0%, #050505 100%);
+    scroll-margin-top: 96px;
+  }
+  .cinematic .librarygrid .archive-shell {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .cinematic .librarygrid .section-title {
+    display: block;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 24px;
+  }
+  .cinematic .librarygrid h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(44px, 5.5vw, 96px); margin: 0; letter-spacing: -.02em; }
+  .cinematic .librarygrid h2 em { font-style: italic; color: var(--accent); }
+  .cinematic .librarygrid .curator-note { margin-top: 16px; max-width: 58ch; font-family: var(--mono); font-size: 13px; line-height: 1.85; letter-spacing: .03em; color: var(--ink-dim); }
+  .cinematic .librarygrid .meta-small { font-family: var(--mono); font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: var(--ink-faint); margin-top: 2px; }
+  .cinematic .librarygrid .archive-nav { margin-top: 2px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 24px;
+    margin-top: 0;
+    align-items: stretch;
+  }
+  .grid .card { position: relative; overflow: hidden; background: #0a0a0a; aspect-ratio: 4/5; transition: transform .6s var(--ease-out), box-shadow .6s, border-color .6s; border: 1px solid transparent; }
+  .grid .card.wide,
+  .grid .card.tall,
+  .grid .card.sq,
+  .grid .card.big,
+  .grid .card.small {
+    grid-column: auto;
+  }
+  .grid .card img { width: 100%; height: 100%; object-fit: cover; transition: transform 1.6s var(--ease-out), filter .6s; filter: brightness(.7) saturate(0.8); }
+  .grid .card:hover { transform: translateY(-6px); border-color: rgba(255,255,255,0.2); box-shadow: 0 24px 48px rgba(0,0,0,0.6); z-index: 10; }
+  .grid .card:hover img { transform: scale(1.08); filter: brightness(1.1) saturate(1.2); }
+  .grid .card .cap {
+    position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-between; gap: 16px; align-items: flex-end;
+    padding: 50px 24px 24px; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+    font-family: var(--mono); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: #fff;
+    opacity: 0; transform: translateY(10px); transition: all .4s var(--ease-out);
+  }
+  .grid .card:hover .cap { opacity: 1; transform: translateY(0); }
+  .grid .card .cap .title { font-family: var(--serif); font-weight: 400; font-size: 16px; letter-spacing: 0; text-transform: none; line-height: 1.3; flex: 1; text-shadow: 0 2px 4px rgba(0,0,0,0.8);}
+  .grid .card .cap .idx { color: var(--accent); white-space: nowrap; font-weight: 600; }
+
+  /* ======================= MISSION BRIEF STRIP ======================= */
+  .brief-strip {
+    background: var(--bg);
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    padding: 52px 60px 56px;
+    display: flex;
+    align-items: stretch;
+    gap: 36px;
+  }
+  .brief-strip .brief-accent {
+    flex-shrink: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--accent) 0%, transparent 100%);
+    opacity: 0.45;
+    min-height: 80px;
+  }
+  .brief-strip .brief-body { flex: 1; }
+  .brief-strip .brief-tag {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .34em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .brief-strip .brief-tag::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    animation: terminalPulse 2s infinite alternate;
+    flex-shrink: 0;
+  }
+  .brief-strip .brief-primary {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-variation-settings: "opsz" 72;
+    font-size: clamp(22px, 2.8vw, 40px);
+    line-height: 1.15;
+    letter-spacing: -.015em;
+    color: var(--ink);
+    margin: 0 0 18px 0;
+    max-width: 660px;
+  }
+  .brief-strip .brief-primary em { font-style: italic; font-weight: 300; color: var(--accent); }
+  .brief-strip .brief-secondary {
+    font-family: var(--mono);
+    font-size: clamp(10px, 0.95vw, 13px);
+    line-height: 1.9;
+    color: var(--ink-dim);
+    max-width: 64ch;
+    letter-spacing: .04em;
+  }
+
+  /* ======================= BRIEFING OVERVIEW CARDS ======================= */
+  .briefing-overview {
+    padding: 132px 60px 90px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+    scroll-margin-top: 96px;
+  }
+  .briefing-overview .bo-head {
+    display: flex;
+    align-items: baseline;
+    gap: 20px;
+    margin-bottom: 52px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 28px;
+  }
+  .briefing-overview .bo-eyebrow {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .34em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .briefing-overview .bo-eyebrow::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    animation: terminalPulse 2s infinite alternate;
+    flex-shrink: 0;
+  }
+  .briefing-overview .bo-title {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(36px, 4vw, 64px);
+    letter-spacing: -.02em;
+    margin: 0;
+  }
+  .briefing-overview .bo-title em { font-style: italic; color: var(--accent); font-weight: 300; }
+  .briefing-overview .bo-orient {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: .03em;
+    line-height: 1.85;
+    color: var(--ink-dim);
+    max-width: 62ch;
+    margin-top: 16px;
+    margin-bottom: 0;
+  }
+  .briefing-overview .bo-helper {
+    margin-top: 10px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    opacity: 0.72;
+  }
+  .bo-cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+  .bo-card {
+    background: #020202;
+    padding: 36px 32px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: relative;
+    transition: background .3s, transform .3s, border-color .3s, box-shadow .3s;
+    cursor: pointer;
+  }
+  .bo-card:hover { background: #060606; }
+  .bo-card[data-target]:hover,
+  .bo-card[data-target]:focus-visible {
+    transform: translateY(-2px);
+    border-color: rgba(255,180,100,0.28);
+    box-shadow: 0 16px 38px rgba(0,0,0,0.28);
+  }
+  .bo-card[data-target] .bc-enter { pointer-events: none; }
+  .bo-card.coming { opacity: 0.45; }
+  .bo-card .bc-num {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .28em;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+  }
+  .bo-card .bc-icon {
+    font-size: 22px;
+    margin-bottom: 4px;
+    line-height: 1;
+  }
+  .bo-card .bc-title {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(20px, 1.8vw, 28px);
+    letter-spacing: -.01em;
+    line-height: 1.1;
+    color: var(--ink);
+  }
+  .bo-card .bc-title em { font-style: italic; color: var(--accent); font-weight: 300; }
+  .bo-card .bc-desc {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .03em;
+    line-height: 1.85;
+    color: var(--ink-dim);
+    flex: 1;
+  }
+  .bo-card .bc-footer {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 4px;
+  }
+  .bo-card .bc-status {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .24em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .bo-card .bc-status.live::before {
+    content: '';
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 6px var(--accent);
+    animation: terminalPulse 2s infinite alternate;
+  }
+  .bo-card .bc-status.live { color: var(--accent); }
+  .bo-card .bc-status.coming-next { color: var(--ink-faint); }
+  .bo-card .bc-enter {
+    font-family: var(--mono); font-size: 9px; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--ink-dim); padding: 6px 14px; border: 1px solid var(--line);
+    background: transparent; transition: color .25s, border-color .25s, background .25s; cursor: none;
+  }
+  .bo-card:hover .bc-enter { color: var(--accent); border-color: rgba(255,180,100,.4); background: rgba(255,180,100,0.05); }
+  .bo-card .bc-enter:hover { color: var(--ink) !important; border-color: var(--ink) !important; background: rgba(255,255,255,0.06) !important; }
+
+  @keyframes roomFlash {
+    0%   { outline: 2px solid rgba(255,180,100,0.55); outline-offset: -2px; background-color: rgba(255,180,100,0.028); }
+    55%  { outline: 2px solid rgba(255,180,100,0.16); outline-offset: 0; background-color: transparent; }
+    100% { outline: 2px solid rgba(255,180,100,0); outline-offset: 4px; }
+  }
+  .section-highlight { animation: roomFlash 1.6s var(--ease-out) forwards; }
+
+  /* ======================= EARTH PULSE ======================= */
+  .earth-pulse-section {
+    padding: 0;
+    background: #000;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    overflow: hidden;
+    position: relative;
+  }
+  .ep-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 80vh;
+    max-width: 100%;
+  }
+  .ep-meta {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 100px 70px 100px 60px;
+    position: relative;
+    z-index: 2;
+  }
+  .ep-eyebrow {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .34em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .ep-ping {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    animation: terminalPulse 2s infinite alternate;
+    flex-shrink: 0;
+  }
+  .ep-title {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(48px, 5.5vw, 96px);
+    letter-spacing: -.02em;
+    line-height: .95;
+    margin: 0 0 20px 0;
+  }
+  .ep-title em { font-style: italic; color: var(--accent); font-weight: 300; }
+  .ep-subtitle {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: clamp(18px, 1.4vw, 24px);
+    color: var(--ink-dim);
+    margin: 0 0 28px 0;
+    letter-spacing: -.005em;
+  }
+  .ep-explain {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: .03em;
+    line-height: 1.9;
+    color: var(--ink-faint);
+    max-width: 58ch;
+    margin-bottom: 44px;
+    padding-left: 14px;
+    border-left: 2px solid rgba(255,180,100,0.2);
+  }
+  .ep-data {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-bottom: 28px;
+  }
+  .ep-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .ep-k {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .ep-v {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: .04em;
+    color: var(--ink);
+  }
+  .ep-caption {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .04em;
+    line-height: 1.85;
+    color: var(--ink-faint);
+    max-width: 58ch;
+    margin-top: 4px;
+    font-style: italic;
+  }
+  .ep-unavail {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .08em;
+    color: var(--ink-faint);
+    padding: 14px 18px;
+    border: 1px solid var(--line);
+    display: inline-block;
+    margin-top: 8px;
+  }
+  .ep-globe-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 50% 50%, #060c16 0%, #000 70%);
+    overflow: hidden;
+  }
+  .ep-globe-ring {
+    position: absolute;
+    width: 90%;
+    aspect-ratio: 1/1;
+    border-radius: 50%;
+    border: 1px solid rgba(255,180,100,0.08);
+    pointer-events: none;
+    animation: epRingSpin 60s linear infinite;
+  }
+  .ep-ring-2 {
+    width: 105%;
+    border-color: rgba(255,180,100,0.04);
+    animation-direction: reverse;
+    animation-duration: 90s;
+  }
+  @keyframes epRingSpin { 100% { transform: rotate(360deg); } }
+  .ep-globe {
+    position: relative;
+    z-index: 2;
+    width: 78%;
+    aspect-ratio: 1/1;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+    box-shadow:
+      0 0 0 1px rgba(255,180,100,0.15),
+      0 0 60px rgba(0,80,160,0.4),
+      0 0 120px rgba(0,40,100,0.3);
+    transition: opacity 1.2s ease, transform 1.6s var(--ease-out), box-shadow 1s ease;
+    opacity: 0;
+    transform: scale(0.93);
+  }
+  @keyframes epGlobePulse {
+    0%, 100% {
+      box-shadow:
+        0 0 0 1px rgba(255,180,100,0.18),
+        0 0 70px rgba(0,90,190,0.45),
+        0 0 140px rgba(0,45,110,0.35);
+    }
+    50% {
+      box-shadow:
+        0 0 0 1px rgba(255,180,100,0.28),
+        0 0 110px rgba(0,120,240,0.6),
+        0 0 200px rgba(0,65,145,0.5);
+    }
+  }
+  .ep-globe.loaded {
+    opacity: 1;
+    transform: scale(1);
+    animation: epGlobePulse 11s ease-in-out infinite;
+  }
+  .ep-ring-3 {
+    width: 122%;
+    border-color: rgba(255,180,100,0.025);
+    animation-direction: normal;
+    animation-duration: 150s;
+  }
+  .ep-context {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-style: italic;
+    font-size: clamp(14px, 1.05vw, 18px);
+    color: var(--ink-dim);
+    letter-spacing: -.005em;
+    line-height: 1.5;
+    margin-bottom: 36px;
+    opacity: 0.75;
+  }
+  .ep-globe-veil {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 50%, transparent 35%, rgba(0,0,0,0.6) 70%, rgba(0,0,0,0.9) 100%);
+    pointer-events: none;
+    z-index: 3;
+  }
+  @media (max-width: 1024px) {
+    .ep-inner { grid-template-columns: 1fr; }
+    .ep-globe-wrap { min-height: 60vw; }
+    .ep-meta { padding: 60px 24px 40px; }
+    .ep-globe { width: 70%; }
+  }
+
+  /* ======================= MISSION BRIEF CARD ======================= */
+  .mbc-section {
+    padding: 0;
+    background: #000;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .mbc-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    min-height: 72vh;
+    max-width: 100%;
+  }
+  .mbc-label-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 84px 56px 84px 60px;
+    border-right: 1px solid var(--line);
+    background: #020202;
+  }
+  .mbc-eyebrow {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .34em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .mbc-ping {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    animation: terminalPulse 2s infinite alternate;
+    flex-shrink: 0;
+  }
+  .mbc-heading {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(40px, 4.5vw, 80px);
+    letter-spacing: -.02em;
+    line-height: .95;
+    margin: 0 0 20px 0;
+  }
+  .mbc-heading em { font-style: italic; color: var(--accent); font-weight: 300; }
+  .mbc-sub {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: clamp(16px, 1.2vw, 20px);
+    color: var(--ink-dim);
+    margin: 0 0 52px 0;
+    line-height: 1.5;
+    max-width: 320px;
+  }
+  .mbc-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    border: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    background: transparent;
+    transition: all .25s;
+    text-align: left;
+    cursor: none;
+    width: fit-content;
+  }
+  .mbc-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(255,180,100,0.06);
+  }
+  .mbc-btn:active { transform: scale(0.98); }
+  .mbc-btn svg { flex-shrink: 0; opacity: 0.7; }
+  .mbc-copied {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .24em;
+    text-transform: uppercase;
+    color: var(--accent);
+    opacity: 0;
+    padding-left: 2px;
+  }
+  @keyframes copiedSlideIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .mbc-copied.show { animation: copiedSlideIn 0.38s var(--ease-out) forwards; }
+
+  @keyframes mbcBtnFlash {
+    0%   { border-color: rgba(255,180,100,0.75); color: var(--accent); box-shadow: 0 0 0 1px rgba(255,180,100,0.12); }
+    100% { border-color: var(--line); color: var(--ink-dim); box-shadow: none; }
+  }
+  .mbc-btn.copied { animation: mbcBtnFlash 1.6s var(--ease-out) forwards; }
+
+  /* The card itself */
+  .mbc-card {
+    margin: auto;
+    width: min(560px, 92%);
+    border: 1px solid rgba(255,180,100,0.22);
+    background: #04060a;
+    box-shadow:
+      0 0 100px rgba(0,40,100,0.22),
+      0 0 0 1px rgba(255,180,100,0.06),
+      inset 0 0 60px rgba(255,180,100,0.015);
+    position: relative;
+    overflow: hidden;
+  }
+  /* Amber top border — tapers right so it reads like a ruled heading */
+  .mbc-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(
+      90deg,
+      var(--accent) 0%,
+      rgba(255,180,100,0.55) 55%,
+      transparent 100%
+    );
+  }
+  .mbc-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 28px 32px 24px;
+  }
+  .mbc-copy-btns {
+    display: flex;
+    justify-content: flex-start;
+    padding: 0 32px 18px;
+  }
+  /* FAROUT wordmark — amber, tracked out, clearly branded */
+  .mbc-card-brand {
+    font-family: var(--mono);
+    font-weight: 500;
+    font-size: 11px;
+    letter-spacing: .38em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .mbc-card-date {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .24em;
+    text-transform: uppercase;
+    color: rgba(255,180,100,0.55);
+  }
+  /* Amber-tinted horizontal rules — unifies the amber palette throughout */
+  .mbc-card-divider {
+    height: 1px;
+    background: rgba(255,180,100,0.14);
+    margin: 0 32px;
+  }
+  .mbc-card-body {
+    padding: 8px 0;
+  }
+  .mbc-summary {
+    padding: 0 32px 16px;
+    font-family: var(--serif);
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--ink-dim);
+    max-width: 34ch;
+  }
+  .mbc-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 18px 32px;
+    border-bottom: 1px solid rgba(255,180,100,0.09);
+    transition: background .2s;
+  }
+  .mbc-row:last-child { border-bottom: none; }
+  .mbc-row:hover { background: rgba(255,255,255,0.018); }
+  /* Icon glyphs — smaller and precisely aligned so they read as symbols,
+     not decorative characters. Each acts as a room-type indicator. */
+  .mbc-row-icon {
+    font-size: 13px;
+    line-height: 1;
+    width: 20px;
+    flex-shrink: 0;
+    color: var(--accent);
+    opacity: 1;
+    margin-top: 5px;
+    text-align: center;
+  }
+  .mbc-row-content {
+    flex: 1;
+    min-width: 0;
+  }
+  /* Room label — fully amber, slightly larger tracking */
+  .mbc-row-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .30em;
+    text-transform: uppercase;
+    color: var(--accent);
+    opacity: 1;
+    margin-bottom: 8px;
+  }
+  /* Value — 18px for visual weight; this is the exhibition headline per room */
+  .mbc-row-value {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 17px;
+    letter-spacing: -.012em;
+    color: #fff;
+    line-height: 1.25;
+    margin-bottom: 6px;
+    word-break: break-word;
+  }
+  .mbc-row-sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .10em;
+    color: var(--ink-faint);
+    line-height: 1.5;
+  }
+  /* Footer — amber at low opacity; functions as an artifact stamp/provenance line */
+  .mbc-card-footer {
+    padding: 18px 32px 26px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: rgba(255,180,100,0.50);
+    font-style: normal;
+    line-height: 1.6;
+    border-top: 1px solid rgba(255,180,100,0.12);
+  }
+  @media (max-width: 1024px) {
+    .mbc-wrap { grid-template-columns: 1fr; }
+    .mbc-label-col { padding: 60px 24px 40px; border-right: none; border-bottom: 1px solid var(--line); }
+    .mbc-card { margin: 40px auto; }
+    .mbc-card-header { padding: 24px 24px 20px; }
+    .mbc-copy-btns { padding: 0 24px 16px; }
+    .mbc-card-divider { margin: 0 24px; }
+    .mbc-summary { padding: 0 24px 14px; }
+    .mbc-row { padding: 16px 24px; }
+    .mbc-card-footer { padding: 16px 24px 24px; }
+  }
+
+  /* ======================= EXHIBITION LANGUAGE ======================= */
+  .room-tag-hero {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .4em;
+    text-transform: uppercase;
+    color: rgba(255,180,100,.55);
+    margin-bottom: 14px;
+  }
+  .apod-curator-note {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .04em;
+    color: rgba(255,255,255,.4);
+    font-style: italic;
+    margin-bottom: 20px;
+    margin-top: -8px;
+  }
+  .bc-curator {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .04em;
+    line-height: 1.6;
+    color: var(--ink-faint);
+    font-style: italic;
+  }
+  .corridor-tag {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .36em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .corridor-tag::before { content: ''; width: 24px; height: 1px; background: var(--line); }
+  .curator-note {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .03em;
+    line-height: 1.65;
+    color: var(--ink-faint);
+    font-style: italic;
+    margin-top: 8px;
+  }
+  .room-header {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .32em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .room-header::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    animation: terminalPulse 2s infinite alternate;
+    flex-shrink: 0;
+  }
+  .exhibit-finish {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .06em;
+    line-height: 1.7;
+    color: var(--ink-dim);
+    font-style: italic;
+  }
+
+  /* ── Presenter Mode: mute non-essential nav controls ────────────────── */
+  header:has(#demoBtn.active) #audioBtn,
+  header:has(#demoBtn.active) #warpBtn,
+  header:has(#demoBtn.active) #keyBtn {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .presenter-tour {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    z-index: 420;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity .25s ease, transform .25s ease;
+    max-width: min(620px, calc(100vw - 32px));
+    padding: 0 0 26px 26px;
+  }
+  .presenter-tour.active {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .presenter-tour-card {
+    pointer-events: auto;
+    background: linear-gradient(to top, rgba(0,0,0,.82), rgba(0,0,0,.62));
+    border: 1px solid rgba(255,180,100,.12);
+    backdrop-filter: blur(14px);
+    padding: 16px 18px 14px;
+  }
+  .presenter-tour-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 10px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .presenter-tour-top-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+    flex-shrink: 0;
+  }
+  .presenter-tour-label {
+    color: var(--accent);
+    line-height: 1.5;
+  }
+  .presenter-tour-status {
+    color: var(--ink-faint);
+  }
+  .presenter-tour.paused .presenter-tour-status {
+    color: rgba(255, 180, 100, 0.5);
+  }
+  .tour-highlight-active {
+    outline: 2px solid rgba(255, 180, 100, 0.3);
+    outline-offset: -2px;
+    transition: outline 0.5s ease;
+  }
+  .presenter-tour-caption {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: clamp(16px, 1.5vw, 22px);
+    line-height: 1.45;
+    letter-spacing: -.01em;
+    color: var(--ink);
+    margin-bottom: 12px;
+    text-wrap: pretty;
+  }
+  .presenter-tour-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .presenter-tour-controls button {
+    flex: 1 1 84px;
+    padding: 9px 10px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: rgba(0,0,0,.55);
+    color: var(--ink-dim);
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+  }
+  .presenter-tour-controls button:hover { border-color: rgba(255,180,100,.3); color: var(--ink); background: rgba(255,255,255,0.05); }
+  .presenter-tour-hint {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.22);
+    line-height: 1.5;
+  }
+  .presenter-tour.paused .presenter-tour-caption {
+    opacity: .72;
+  }
+  .lb-nav-note {
+    margin-top: 10px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .16em;
+    line-height: 1.75;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.28);
+  }
+  .cr-lib-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .cr-lib-nav { display: flex; gap: 12px; flex-wrap: wrap; }
+  .cr-nav-hint { display: none; }
+  @media (max-width: 720px) {
+    .presenter-tour { left: 50%; transform: translate(-50%, 12px); padding: 0 0 18px; max-width: calc(100vw - 24px); }
+    .presenter-tour.active { transform: translate(-50%, 0); }
+    .presenter-tour-card { padding: 14px 14px 12px; }
+    .presenter-tour-caption { font-size: 16px; }
+    .presenter-tour-controls button { flex: 1 1 calc(50% - 4px); }
+  }
+
+  /* ======================= BUILD LOG ======================= */
+  .build-log-section { padding: 100px 60px 110px; background: #000; border-top: 1px solid var(--line); }
+  .bl-inner { max-width: 1400px; margin: 0 auto; }
+  .bl-top { margin-bottom: 64px; }
+  .bl-eyebrow {
+    font-family: var(--mono); font-size: 9px; letter-spacing: .34em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 20px; display: flex; align-items: center; gap: 10px;
+  }
+  .bl-ping {
+    display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 8px var(--accent);
+    animation: terminalPulse 2s infinite alternate; flex-shrink: 0;
+  }
+  .bl-title { font-family: var(--serif); font-weight: 400; font-size: clamp(48px, 6vw, 104px); letter-spacing: -.02em; line-height: .92; margin: 0; }
+  .bl-title em { font-style: italic; color: var(--accent); font-weight: 300; }
+  .bl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); margin-bottom: 48px; }
+  .bl-col { background: #020202; padding: 40px 48px; }
+  .bl-col-label {
+    font-family: var(--mono); font-size: 9px; letter-spacing: .28em; text-transform: uppercase;
+    color: var(--ink-faint); margin-bottom: 28px; padding-bottom: 16px; border-bottom: 1px solid var(--line);
+  }
+  .bl-entries { display: flex; flex-direction: column; }
+  .bl-entry {
+    display: flex; align-items: baseline; gap: 16px; padding: 14px 0;
+    border-bottom: 1px solid rgba(255,255,255,.04);
+    font-family: var(--mono); font-size: 11px; letter-spacing: .04em; line-height: 1.6; color: var(--ink-dim);
+  }
+  .bl-entry:last-child { border-bottom: none; }
+  .bl-entry.done { color: var(--ink); }
+  .bl-icon { flex-shrink: 0; color: var(--ink-faint); font-size: 12px; }
+  .bl-entry.done .bl-icon { color: var(--accent); }
+  .bl-footer {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--ink-faint); text-align: center;
+  }
+  @media (max-width: 1024px) {
+    .build-log-section { padding: 60px 24px 70px; }
+    .bl-grid { grid-template-columns: 1fr; }
+    .bl-col { padding: 30px 24px; }
+    .demo-bottom { padding: 0 24px 36px; }
+    .layout-tabs button { padding: 8px 14px; }
+  }
+
+  /* ======================= PLACEHOLDER SECTIONS ======================= */
+  .placeholder-section {
+    padding: 80px 60px 90px;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    background: #010101;
+    position: relative;
+    overflow: hidden;
+  }
+  .placeholder-section::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 20px,
+      rgba(255,255,255,0.012) 20px,
+      rgba(255,255,255,0.012) 21px
+    );
+    pointer-events: none;
+  }
+  .placeholder-section .ph-eyebrow {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .34em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .placeholder-section .ph-eyebrow::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--ink-faint);
+    flex-shrink: 0;
+  }
+  .placeholder-section h2 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(36px, 4vw, 64px);
+    letter-spacing: -.02em;
+    margin: 0 0 20px 0;
+    color: var(--ink-dim);
+  }
+  .placeholder-section h2 em { font-style: italic; color: var(--ink-faint); font-weight: 300; }
+  .placeholder-section .ph-desc {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .08em;
+    line-height: 1.7;
+    color: var(--ink-faint);
+    max-width: 520px;
+    margin-bottom: 28px;
+  }
+  .placeholder-section .ph-badge {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    padding: 8px 18px;
+    border: 1px solid var(--ink-faint);
+    color: var(--ink-faint);
+    display: inline-block;
+  }
+
+  /* =============================================================
+     VIEW 2 — MISSION CONTROL (archival / terminal styling)
+     ============================================================= */
+  /* ======================= CONTROL ROOM (MISSION VIEW) ======================= */
+  .mission { min-height: 100vh; min-height: 100dvh; padding: 88px 28px 48px; font-family: var(--mono); font-size: 11px; position: relative; background: #020202; }
+  .mission::before { content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); z-index: 10; background-size: 100% 4px, 6px 100%; pointer-events: none; opacity: 0.8; }
+  .mission::after { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.8) 100%); pointer-events: none; z-index: 11; }
+  @keyframes terminalPulse { from { opacity: 0.8; } to { opacity: 1; } }
+
+  .cr-wrap { position: relative; z-index: 12; max-width: 1600px; margin: 0 auto; }
+
+  /* Masthead */
+  .cr-masthead { display: flex; align-items: center; justify-content: space-between; padding: 16px 22px; margin-bottom: 16px; border: 1px solid var(--line); background: rgba(6,6,6,0.96); backdrop-filter: blur(12px); gap: 24px; flex-wrap: wrap; }
+  .cr-masthead-label { font-size: 10px; letter-spacing: .36em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+  .cr-masthead-date { font-size: 20px; color: var(--ink); letter-spacing: .02em; }
+  .cr-masthead-date span { color: var(--accent); }
+  .cr-source-strip { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .cr-src-pill { display: flex; align-items: center; gap: 6px; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-faint); padding: 5px 10px; border: 1px solid var(--line); background: rgba(0,0,0,0.6); white-space: nowrap; }
+  .cr-src-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--ink-faint); flex-shrink: 0; }
+  .cr-src-dot.cr-ok { background: var(--accent); box-shadow: 0 0 5px var(--accent); animation: terminalPulse 2s infinite alternate; }
+
+  /* 6-Panel Grid */
+  .cr-panels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+
+  /* Individual Panel */
+  .cr-panel { background: #020202; padding: 22px; display: flex; flex-direction: column; gap: 14px; position: relative; transition: background 0.3s, transform 0.3s, border-color 0.3s, box-shadow 0.3s; min-height: 320px; }
+  .cr-panel:hover { background: #040404; }
+  .cr-panel::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(to right, var(--accent), transparent); opacity: 0.25; pointer-events: none; }
+  .cr-panel[data-target] { cursor: pointer; }
+  .cr-panel[data-target]:hover,
+  .cr-panel[data-target]:focus-visible {
+    transform: translateY(-2px);
+    border-color: rgba(255,180,100,0.28);
+    box-shadow: 0 16px 38px rgba(0,0,0,0.28);
+  }
+  .cr-panel[data-target] .cr-epic-thumb-wrap,
+  .cr-panel[data-target] .cr-data-rows { pointer-events: none; }
+  .cr-panel[data-target] .cr-mini-rail .tile { pointer-events: auto; }
+  .cr-panel[data-target] .cr-panel-hd::after {
+    content: 'Open Room →';
+    font-size: 9px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: rgba(255,180,100,0.55);
+    transition: color .2s;
+  }
+  .cr-panel[data-target]:hover .cr-panel-hd::after { color: var(--accent); }
+
+  /* Panel Header */
+  .cr-panel-hd { display: flex; align-items: center; gap: 8px; padding-bottom: 12px; border-bottom: 1px solid var(--line); flex-shrink: 0; }
+  .cr-pnum { font-size: 10px; letter-spacing: .24em; color: var(--ink-faint); flex-shrink: 0; }
+  .cr-psrc { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-faint); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cr-pstatus { font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-faint); flex-shrink: 0; }
+  .cr-pstatus.cr-ok { color: var(--accent); animation: terminalPulse 2s infinite alternate; }
+  .cr-pcount { font-size: 14px; color: var(--accent); letter-spacing: .02em; flex-shrink: 0; }
+  .room-target-flash { animation: roomTargetFlash 1.2s var(--ease-out); }
+  @keyframes roomTargetFlash {
+    0% { box-shadow: inset 0 0 0 1px rgba(255,180,100,0); }
+    40% { box-shadow: inset 0 0 0 1px rgba(255,180,100,0.22); }
+    100% { box-shadow: inset 0 0 0 1px rgba(255,180,100,0); }
+  }
+
+  /* Panel title */
+  .cr-ptitle { font-family: var(--serif); font-size: clamp(15px, 1.2vw, 20px); font-weight: 400; letter-spacing: -.01em; color: var(--ink); flex-shrink: 0; }
+
+  /* APOD thumbnail */
+  .cr-thumb-wrap { position: relative; aspect-ratio: 16/9; overflow: hidden; background: #080808; border: 1px solid var(--line); transition: border-color 0.3s; cursor: none; flex-shrink: 0; }
+  .cr-thumb-wrap:hover { border-color: var(--accent); }
+  .cr-thumb-bg { width: 100%; height: 100%; background-size: cover; background-position: center; filter: contrast(1.1) brightness(0.85); transition: filter 0.4s; }
+  .cr-thumb-wrap:hover .cr-thumb-bg { filter: contrast(1.05) brightness(1); }
+  .cr-thumb-xhair { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(to right, transparent calc(50% - .5px), rgba(255,180,100,.22) calc(50% - .5px), rgba(255,180,100,.22) calc(50% + .5px), transparent calc(50% + .5px)), linear-gradient(to bottom, transparent calc(50% - .5px), rgba(255,180,100,.22) calc(50% - .5px), rgba(255,180,100,.22) calc(50% + .5px), transparent calc(50% + .5px)); }
+  .cr-thumb-label { position: absolute; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-between; gap: 8px; font-size: 9px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); padding: 6px 10px; background: rgba(0,0,0,.75); border-top: 1px solid rgba(255,180,100,.18); }
+
+  /* APOD title in panel */
+  .cr-pname { font-family: var(--serif); font-size: clamp(12px, 1vw, 15px); font-weight: 400; color: var(--ink-dim); line-height: 1.35; }
+
+  /* Telemetry rows (APOD panel) */
+  .cr-prows { font-size: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; }
+  .cr-prows .k { font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-faint); display: block; margin-bottom: 3px; }
+  .cr-prows .v { color: var(--ink); font-size: 11px; }
+
+  /* Meta line below rails */
+  .cr-pmeta { font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-faint); margin-top: auto; padding-top: 10px; border-top: 1px solid var(--line); }
+
+  /* Mini Rails */
+  .cr-mini-rail {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    flex: 1;
+    min-height: 0;
+    margin-top: 4px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 10px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,180,100,0.24) rgba(255,255,255,0.04);
+    -webkit-overflow-scrolling: touch;
+  }
+  .cr-mini-rail::-webkit-scrollbar { height: 7px; }
+  .cr-mini-rail::-webkit-scrollbar-track { background: rgba(255,255,255,0.04); }
+  .cr-mini-rail::-webkit-scrollbar-thumb { background: rgba(255,180,100,0.24); border-radius: 999px; }
+  .cr-mini-rail .tile { min-width: 84px; }
+  .horizontal-scroll {
+    display: flex;
+    gap: 32px;
+    overflow-x: auto;
+    padding-bottom: 18px;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,180,100,0.28) rgba(255,255,255,0.04);
+    -ms-overflow-style: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .horizontal-scroll::-webkit-scrollbar { height: 8px; }
+  .horizontal-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.04); }
+  .horizontal-scroll::-webkit-scrollbar-thumb { background: rgba(255,180,100,0.28); border-radius: 999px; }
+  .cr-lib-rail { grid-template-columns: repeat(6, 1fr); }
+  .cr-mini-rail .tile { position: relative; aspect-ratio: 1/1; background: #0c0c0c; overflow: hidden; border: 1px solid var(--line); transition: all .22s; }
+  .cr-mini-rail .tile:hover { border-color: var(--accent); z-index: 2; transform: translateY(-2px) scale(1.01); }
+  .cr-mini-rail .tile img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(.25) contrast(1.08) brightness(.82); transition: filter .3s, transform .3s; }
+  .cr-mini-rail .tile:hover img { filter: none; transform: scale(1.04); }
+  .cr-mini-rail .tile .stamp { position: absolute; bottom: 0; left: 0; right: 0; font-size: 7px; letter-spacing: .08em; color: var(--ink); background: linear-gradient(to top, rgba(0,0,0,.92), rgba(0,0,0,.68)); padding: 5px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Data rows (NEO, EPIC, Card panels) */
+  .cr-data-rows { display: flex; flex-direction: column; gap: 0; flex: 1; }
+  .cr-dr { display: flex; flex-direction: column; gap: 3px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .cr-dr:first-child { padding-top: 0; }
+  .cr-dr:last-child { border-bottom: none; }
+  .cr-dk { font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-faint); }
+  .cr-dv { font-size: 14px; letter-spacing: .01em; color: var(--ink); line-height: 1.45; text-align: justify; text-justify: inter-word; }
+
+  /* EPIC thumbnail */
+  .cr-epic-thumb-wrap { display: flex; justify-content: center; padding: 4px 0; flex-shrink: 0; margin-top: 2px; }
+  .cr-epic-thumb { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; border: 1px solid var(--line); filter: brightness(0.9); display: block; opacity: 0; transition: opacity 0.5s; }
+  .cr-epic-thumb.loaded { opacity: 1; }
+
+  /* Card note */
+  .cr-card-note { font-size: 12px; letter-spacing: .04em; line-height: 1.7; color: var(--ink-faint); font-style: italic; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--line); text-align: justify; text-justify: inter-word; }
+
+  /* Hidden relay elements */
+  .cr-phidden { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; pointer-events: none; }
+
+  /* Build Log button in masthead */
+  .cr-buildlog-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 18px; border: 1px solid var(--line); border-radius: 999px;
+    font-family: var(--mono); font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--ink-faint); background: rgba(0,0,0,0.5); transition: all .25s; white-space: nowrap; cursor: none;
+  }
+  .cr-buildlog-btn:hover { border-color: rgba(255,180,100,.3); color: var(--accent); background: rgba(255,180,100,0.06); }
+
+  /* ======================= LIGHTBOX ======================= */
+  @keyframes lbBgIn   { from { opacity: 0; }                        to { opacity: 1; } }
+  @keyframes lbImgIn  { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+  @keyframes lbMetaIn { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: translateX(0); } }
+
+  .lightbox { position: fixed; inset: 0; z-index: 300; background: rgba(0,0,0,.94); backdrop-filter: blur(14px); display: none; align-items: center; justify-content: center; padding: 24px; }
+  .lightbox.open { display: flex; animation: lbBgIn 0.35s var(--ease-out) both; }
+
+  .lightbox .lb-inner { max-width: 1480px; width: 100%; height: calc(100vh - 48px); height: calc(100dvh - 48px); display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 0; background: #080808; border: 1px solid rgba(255,255,255,0.07); overflow: hidden; }
+  .lightbox .lb-img { background: #050505; display: flex; align-items: center; justify-content: center; padding: 48px; overflow: hidden; border-right: 1px solid rgba(255,255,255,0.06); position: relative; cursor: ew-resize; }
+  .lightbox .lb-img img { max-width: 100%; max-height: 100%; object-fit: contain; box-shadow: 0 12px 60px rgba(0,0,0,0.85); animation: lbImgIn 0.52s var(--ease-out) 0.06s both; }
+  .lightbox .lb-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--ink-dim);
+    background: rgba(5,5,5,0.88);
+    backdrop-filter: blur(8px);
+    transition: all 0.22s ease;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+  }
+  .lightbox .lb-nav-btn:hover { border-color: rgba(255,180,100,0.28); color: var(--accent); background: rgba(255,180,100,0.05); }
+  .lightbox .lb-nav-btn:disabled { opacity: 0.28; pointer-events: none; }
+  .lightbox .lb-position {
+    pointer-events: auto;
+    min-width: 72px;
+    padding: 10px 12px;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 999px;
+    background: rgba(5,5,5,0.88);
+    backdrop-filter: blur(8px);
+    text-align: center;
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+  }
+  .lightbox .lb-edge {
+    position: absolute; top: 0; bottom: 0; width: 92px; pointer-events: none; z-index: 2;
+  }
+  .lightbox .lb-edge.left { left: 0; background: linear-gradient(to right, rgba(5,5,5,0.9), rgba(5,5,5,0)); }
+  .lightbox .lb-edge.right { right: 0; background: linear-gradient(to left, rgba(5,5,5,0.9), rgba(5,5,5,0)); }
+
+  .lightbox .lb-nav-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    margin-top: 16px;
+    flex-shrink: 0;
+  }
+  .lightbox .lb-nav-strip .lb-position {
+    min-width: 72px;
+    padding: 10px 12px;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 999px;
+    background: rgba(5,5,5,0.88);
+    text-align: center;
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+  }
+  .lightbox .lb-nav-strip .lb-nav-btn {
+    min-width: 120px;
+  }
+  .lightbox .lb-meta { display: flex; flex-direction: column; align-items: flex-start; padding: 48px 40px; overflow-y: auto; height: 100%; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.14) transparent; animation: lbMetaIn 0.5s var(--ease-out) 0.16s both; }
+  .lightbox .lb-meta::-webkit-scrollbar { width: 3px; }
+  .lightbox .lb-meta::-webkit-scrollbar-track { background: transparent; }
+  .lightbox .lb-meta::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 2px; }
+
+  .lightbox .lb-meta .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .3em; text-transform: uppercase; color: var(--accent); margin-bottom: 20px; flex-shrink: 0; }
+  .lightbox .lb-meta h3 { font-family: var(--serif); font-weight: 400; font-size: clamp(24px, 2.4vw, 38px); line-height: 1.07; letter-spacing: -.015em; margin: 0 0 24px 0; text-wrap: balance; flex-shrink: 0; }
+  .lightbox .lb-meta .desc { width: 100%; max-width: 46ch; font-family: var(--serif); font-weight: 300; font-size: 18px; line-height: 1.9; color: var(--ink-dim); margin-bottom: 32px; flex: 1; text-align: justify; text-justify: inter-word; }
+  .lightbox .lb-meta .desc p:first-child { margin-top: 0; }
+  .lightbox .lb-meta .desc p { margin: 0 0 1.15em 0; }
+  .lightbox .lb-meta .desc p:last-child { margin-bottom: 0; }
+  .lightbox .lb-meta .meta { width: 100%; font-family: var(--mono); font-size: 12px; display: grid; grid-template-columns: 1fr; gap: 14px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 28px; flex-shrink: 0; margin-top: auto; }
+  .lightbox .lb-meta .meta div { display: flex; flex-direction: column; gap: 5px; }
+  .lightbox .lb-meta .meta .k { color: var(--ink-faint); text-transform: uppercase; letter-spacing: .18em; font-size: 10px; }
+  .lightbox .lb-meta .meta .v { color: var(--ink); font-size: 14px; word-break: break-word; }
+  .lightbox .lb-img .lb-edge.left,
+  .lightbox .lb-img .lb-edge.right {
+    z-index: 1;
+  }
+
+  .lb-close-btn { position: fixed; top: 20px; right: 24px; z-index: 310; width: 42px; height: 42px; border-radius: 50%; background: rgba(10,10,10,0.92); border: 1px solid rgba(255,255,255,0.14); backdrop-filter: blur(10px); font-size: 20px; line-height: 1; color: var(--ink-dim); display: flex; align-items: center; justify-content: center; transition: all 0.22s; cursor: pointer; }
+  .lb-close-btn:hover { background: var(--ink); color: #000; border-color: var(--ink); transform: scale(1.06); }
+
+  /* ======================= KEY PANEL & ERROR ======================= */
+  .keypanel { position: fixed; inset: 0; z-index: 250; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,.9); backdrop-filter: blur(12px); }
+  .keypanel.open { display: flex; animation: viewFade 0.4s var(--ease-out); }
+  .keypanel .box { max-width: 640px; width: 100%; margin: 24px; border: 1px solid var(--line); padding: 40px; background: var(--bg-2); box-shadow: 0 20px 60px rgba(0,0,0,0.8); }
+  .keypanel h3 { font-family: var(--serif); font-weight: 400; font-size: clamp(30px, 4vw, 40px); margin: 0 0 14px 0; letter-spacing: -.01em; }
+  .keypanel p { font-family: var(--serif); font-weight: 300; color: var(--ink-dim); font-size: 16px; line-height: 1.6; margin: 0 0 22px 0; }
+  .keypanel .flow { display: grid; gap: 14px; margin: 22px 0 20px; }
+  .keypanel .flow-row { display: grid; grid-template-columns: 1fr 22px 1fr 22px 1fr 22px 1fr; align-items: center; gap: 10px; }
+  .keypanel .flow-box { padding: 12px 14px; border: 1px solid rgba(255,180,100,.18); background: rgba(255,180,100,0.04); font-family: var(--mono); font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink); text-align: center; }
+  .keypanel .flow-arrow { height: 1px; background: linear-gradient(90deg, rgba(255,180,100,.05), rgba(255,180,100,.38), rgba(255,180,100,.05)); position: relative; }
+  .keypanel .flow-arrow::after { content: ''; position: absolute; right: -1px; top: -3px; width: 6px; height: 6px; border-top: 1px solid rgba(255,180,100,.38); border-right: 1px solid rgba(255,180,100,.38); transform: rotate(45deg); }
+  .keypanel .chips { display: flex; flex-wrap: wrap; gap: 10px; margin: 2px 0 18px; }
+  .keypanel .chip { padding: 7px 10px; border: 1px solid rgba(255,180,100,.16); background: rgba(255,255,255,0.02); font-family: var(--mono); font-size: 9px; letter-spacing: .16em; text-transform: uppercase; color: var(--ink-dim); }
+  .keypanel .status-ok { display: grid; gap: 6px; padding: 16px 18px; border: 1px solid rgba(255,180,100,.3); background: rgba(255,180,100,0.05); margin-bottom: 20px; font-family: var(--mono); font-size: 10px; letter-spacing: .12em; color: var(--accent); }
+  .keypanel .status-ok div { line-height: 1.4; }
+  .keypanel .actions { display: flex; gap: 16px; justify-content: flex-end; margin-top: 8px; }
+  .keypanel .btn { font-family: var(--mono); font-size: 10px; letter-spacing: .24em; text-transform: uppercase; padding: 11px 20px; border: 1px solid var(--line); border-radius: 999px; transition: all .3s; }
+  .keypanel .btn:hover { border-color: var(--ink); background: rgba(255,255,255,0.05); }
+  .keypanel .btn.primary { background: var(--ink); color: #000; border-color: var(--ink); font-weight: 600;}
+  @media (max-width: 720px) {
+    .keypanel .box { padding: 24px; margin: 16px; }
+    .keypanel .flow-row { grid-template-columns: 1fr; }
+    .keypanel .flow-arrow { width: 1px; height: 14px; margin: 0 auto; }
+    .keypanel .flow-arrow::after { right: auto; top: auto; left: -2px; bottom: -1px; transform: rotate(135deg); }
+    .keypanel .actions { justify-content: stretch; }
+    .keypanel .btn { width: 100%; }
+  }
+  
+  .errbar { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px); padding: 16px 28px; background: rgba(30,10,10,.95); border: 1px solid rgba(255,100,80,.4); border-radius: 8px; font-family: var(--mono); font-size: 12px; letter-spacing: .1em; color: #ffb2a8; z-index: 400; opacity: 0; visibility: hidden; transition: all 0.4s var(--ease-out); max-width: 90vw; }
+  .errbar.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+
+  /* ======================= FOOTER CREDIT ======================= */
+  .credit { position: relative; z-index: 10; padding: 40px 60px 48px; border-top: 1px solid var(--line); background: #020202; font-family: var(--mono); font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: var(--ink-faint); }
+  .credit-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 16px; text-align: center; }
+  .credit-mark { color: var(--ink); font-family: var(--serif); font-weight: 900; font-size: 16px; text-transform: none; }
+  .credit-sep { color: var(--ink-faint); }
+  .credit-text strong { color: var(--ink); font-weight: 500; }
+  .credit a { color: var(--accent); border-bottom: 1px solid rgba(255,180,100,.3); transition: border-color 0.3s; }
+  .credit a:hover { border-color: var(--accent); }
+
+  /* ======================= ASTEROID WATCH ======================= */
+  .asteroid-watch {
+    background: #020304;
+    border-bottom: 1px solid var(--line);
+    padding: 80px 60px 90px;
+    position: relative;
+  }
+  .asteroid-watch::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; right: 0; height: 1px;
+    background: linear-gradient(to right, transparent, var(--accent), transparent);
+    opacity: 0.25;
+  }
+  .aw-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 16px;
+  }
+  .aw-eyebrow {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .34em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .aw-ping {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    animation: terminalPulse 2s infinite alternate;
+    flex-shrink: 0;
+  }
+  .aw-head h2 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(36px, 4vw, 64px);
+    letter-spacing: -.02em;
+    margin: 0;
+  }
+  .aw-head h2 em { font-style: italic; color: var(--accent); font-weight: 300; }
+  .aw-badge {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    padding: 8px 16px;
+    border: 1px solid var(--line);
+    color: var(--ink-faint);
+    flex-shrink: 0;
+    margin-top: 6px;
+    transition: border-color .4s, color .4s, box-shadow .4s;
+  }
+  .aw-badge.nominal { border-color: var(--accent); color: var(--accent); }
+  .aw-badge.close   { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 16px var(--accent-glow); }
+  .aw-badge.hazardous { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 24px var(--accent-glow); animation: terminalPulse 1s infinite alternate; }
+  .aw-ld-note {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .06em;
+    color: var(--ink-faint);
+    margin-bottom: 36px;
+    padding: 12px 18px;
+    border-left: 2px solid rgba(255,180,100,0.2);
+    line-height: 1.6;
+  }
+  .aw-ld-note strong { color: var(--ink-dim); font-weight: 500; }
+  .aw-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    margin-bottom: 28px;
+  }
+  .aw-cell {
+    background: #020304;
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .aw-cell.span2 { grid-column: span 2; }
+  .aw-cell.hazard .aw-v { color: var(--accent); text-shadow: 0 0 12px var(--accent-glow); }
+  .aw-k {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .24em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .aw-v {
+    font-family: var(--serif);
+    font-size: clamp(16px, 1.8vw, 26px);
+    font-weight: 400;
+    letter-spacing: -.01em;
+    color: var(--ink);
+    line-height: 1.15;
+    word-break: break-word;
+  }
+  .aw-v-sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .04em;
+    color: var(--ink-faint);
+    line-height: 1.5;
+    margin-top: 4px;
+  }
+  .aw-hazard-note {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .04em;
+    color: var(--ink-faint);
+    line-height: 1.6;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    padding: 14px 18px;
+    border: 1px solid rgba(255,180,100,0.12);
+    background: rgba(255,180,100,0.04);
+  }
+  .aw-prox-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 10px;
+  }
+  .aw-prox-track {
+    position: relative;
+    height: 2px;
+    background: rgba(255,255,255,0.06);
+  }
+  .aw-prox-fill {
+    height: 100%;
+    background: linear-gradient(to right, transparent, var(--accent));
+    width: 0%;
+    transition: width .9s var(--ease-out);
+  }
+  .aw-prox-ticks {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-family: var(--mono);
+    font-size: 8px;
+    letter-spacing: .2em;
+    color: var(--ink-faint);
+  }
+  .aw-unavail {
+    grid-column: 1 / -1;
+    padding: 48px 28px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .08em;
+    color: var(--ink-dim);
+    text-align: center;
+  }
+  .gallery-unavail {
+    padding: 60px 40px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .08em;
+    color: var(--ink-dim);
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .lib-unavail {
+    grid-column: 1 / -1;
+    padding: 60px 40px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .08em;
+    color: var(--ink-dim);
+    text-align: center;
+  }
+
+  /* Archive refresh transitions */
+  @keyframes archiveCardIn {
+    from { opacity: 0; transform: translateY(7px); }
+    to   { opacity: 1; transform: none; }
+  }
+  #cine-lib-grid { transition: opacity 0.26s ease; }
+  #cine-lib-grid.refreshing { opacity: 0; pointer-events: none; }
+  .archive-toast {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 80;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    background: rgba(12,12,12,0.92);
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity .24s ease, transform .24s ease;
+    pointer-events: none;
+  }
+  .archive-toast.show { opacity: 1; transform: translateY(0); }
+  .archive-toast.hidden { display: none; }
+  #cine-lib.flash {
+    animation: archiveSectionPulse .9s ease-out;
+  }
+  .archive-room-flash {
+    animation: archiveRoomFlash .9s ease-out;
+  }
+  @keyframes archiveSectionPulse {
+    0% { box-shadow: inset 0 0 0 1px rgba(255,180,100,0); }
+    35% { box-shadow: inset 0 0 0 1px rgba(255,180,100,0.32); }
+    100% { box-shadow: inset 0 0 0 1px rgba(255,180,100,0); }
+  }
+  @keyframes archiveRoomFlash {
+    0% { box-shadow: inset 0 0 0 1px rgba(255,180,100,0); background: transparent; }
+    35% { box-shadow: inset 0 0 0 1px rgba(255,180,100,0.20); background: rgba(255,180,100,0.03); }
+    100% { box-shadow: inset 0 0 0 1px rgba(255,180,100,0); background: transparent; }
+  }
+  #cine-lib-grid .card { animation: archiveCardIn 0.42s var(--ease-out) both; animation-delay: calc(var(--i, 0) * 38ms); }
+  #mc-lib-rail { transition: opacity 0.26s ease; }
+  #mc-lib-rail.refreshing { opacity: 0; pointer-events: none; }
+  #mc-lib-rail .tile { animation: archiveCardIn 0.32s var(--ease-out) both; animation-delay: calc(var(--i, 0) * 28ms); }
+  .archive-nav {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .24em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .archive-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--ink-dim);
+    transition: all .2s ease;
+  }
+  .archive-nav-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(255,180,100,0.06);
+  }
+  .archive-nav-btn:active { transform: scale(0.98); }
+  .archive-nav-hint { display: none; }
+  .cr-lib-nav {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+  .cr-lib-nav .archive-nav-btn { flex: 1 1 160px; justify-content: center; }
+  .aw-summary {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .05em;
+    line-height: 1.9;
+    color: var(--ink-dim);
+    margin-bottom: 36px;
+    padding: 18px 24px;
+    border-left: 2px solid rgba(255,180,100,0.22);
+    max-width: 860px;
+  }
+  .aw-summary strong { color: var(--ink); font-weight: 500; }
+  /* Asteroid Watch visualization wrapper */
+  .aw-vis-wrap {
+    margin: 44px 0 44px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .aw-vis-svg {
+    width: 100%;
+    min-width: min(420px, 100%);
+    max-width: 900px;
+    height: auto;
+    display: block;
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+  @keyframes awLineIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes awDotIn  { from { opacity: 0; transform: scale(0.25); } to { opacity: 1; transform: scale(1); } }
+  .aw-orb-note {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: .04em;
+    line-height: 1.7;
+    color: var(--ink-faint);
+    margin-top: 14px;
+    max-width: 640px;
+    opacity: 0.55;
+    text-align: center;
+  }
+
+  @media (max-width: 1024px) {
+    .nav { padding: 16px 20px; gap: 12px; flex-wrap: wrap; }
+    .brand { font-size: 20px; } .brand .sub { display: none; }
+    .layout-tabs { order: 3; width: 100%; justify-content: center; }
+    .cinematic .hero-content { padding: 0 24px 60px 24px; }
+    .cinematic .meta-row { gap: 24px; }
+    .card-lg { flex: 0 0 85vw; }
+    .cinematic .gallery-chapter, .cinematic .librarygrid { padding: 100px 24px; }
+    .brief-strip { padding: 36px 24px 40px; gap: 20px; }
+    .briefing-overview { padding: 104px 24px 70px; }
+    .bo-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .asteroid-watch { padding: 60px 24px 70px; }
+    .aw-grid { grid-template-columns: repeat(2, 1fr); }
+    .aw-cell.span2 { grid-column: span 2; }
+    .placeholder-section { padding: 60px 24px 70px; }
+    .mission { padding: 120px 20px 40px; }
+    .mission .bar { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .mission .primary { grid-template-columns: 1fr; }
+    .mission .strip .rail { grid-template-columns: repeat(4, 1fr); }
+    .lightbox { padding: 0; }
+    .lightbox .lb-inner { grid-template-columns: 1fr; height: 100dvh; }
+    .lightbox .lb-img { max-height: 45dvh; padding: 20px; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .lightbox .lb-meta { height: auto; padding: 20px 20px 32px; animation-name: none; }
+    .librarygrid .grid { display: flex; overflow-x: auto; gap: 12px; padding-bottom: 8px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+    .librarygrid .grid .card { flex: 0 0 84vw; scroll-snap-align: start; }
+    .librarygrid .archive-nav { flex-wrap: wrap; }
+    .librarygrid .archive-nav .archive-nav-btn { flex: 1 1 160px; }
+  }
+  @media (max-width: 768px) {
+    .nav {
+      padding: 12px 12px 10px;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .brand { font-size: 18px; line-height: 1; }
+    .layout-tabs {
+      order: 3;
+      width: 100%;
+      justify-content: space-between;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .layout-tabs::-webkit-scrollbar { display: none; }
+    .layout-tabs button { padding: 10px 14px; min-height: 40px; }
+    .nav-right {
+      width: 100%;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-start;
+    }
+    .date-control-group {
+      width: 100%;
+      justify-content: flex-start;
+    }
+    .date-control-group .date-nav {
+      width: 100%;
+      order: 1;
+    }
+    .date-control-group .date-pill {
+      width: 100%;
+      order: 2;
+    }
+    .date-control-group .presenter-btn {
+      order: 3;
+    }
+    .nav .warp-btn,
+    .nav .key-btn {
+      padding: 10px 12px;
+      min-height: 40px;
+    }
+    .nav .warp-btn { font-size: 9px; letter-spacing: .12em; }
+    .nav .warp-btn svg { flex-shrink: 0; }
+    .date-pill input[type="date"] { width: 100%; }
+    .cinematic .hero-content { padding: 0 16px 72px 16px; }
+    .cinematic .hero-content h1,
+    .ep-title,
+    .bl-title,
+    .placeholder-section h2,
+    .cinematic .librarygrid h2,
+    .briefing-overview .bo-title { font-size: clamp(34px, 10vw, 60px); }
+    .cinematic .meta-row { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .cinematic .gallery-header,
+    .cinematic .librarygrid .section-title { flex-direction: column; align-items: flex-start; gap: 14px; }
+    .cinematic .gallery-header .sub { text-align: left; max-width: 100%; }
+    .card-lg { flex: 0 0 82vw; }
+    .card-lg .caption { font-size: 13px; }
+    .briefing-overview .bo-head { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .bo-cards { grid-template-columns: 1fr; }
+    .bo-card { padding: 26px 20px 28px; }
+    .bo-card .bc-desc { font-size: 13px; }
+    .librarygrid .grid { display: flex; overflow-x: auto; gap: 12px; padding-bottom: 8px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+    .librarygrid .grid .card { flex: 0 0 84vw; scroll-snap-align: start; }
+    .librarygrid .archive-nav { flex-wrap: wrap; }
+    .earth-pulse-section .ep-inner,
+    .mission .cr-panels,
+    .bl-grid { grid-template-columns: 1fr; }
+    .mission .cr-panels { display: flex; flex-direction: column; }
+    .mission .cr-panel { min-height: 0; padding: 18px; }
+    .mission .cr-panel-hd { flex-wrap: wrap; }
+    .mission .cr-panel .cr-mini-rail { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .mission .cr-panel .cr-mini-rail .tile { flex: 0 0 64vw; }
+    .lightbox .lb-inner { grid-template-columns: 1fr; height: 100dvh; }
+    .lightbox .lb-img { padding: 14px; max-height: 44dvh; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .lightbox .lb-img-nav { top: auto; bottom: 12px; left: 12px; right: 12px; justify-content: space-between; }
+    .lightbox .lb-nav-btn { width: 44px; height: 44px; }
+    .lightbox .lb-meta { padding: 16px 16px 24px; }
+    .lightbox .lb-meta .desc { max-width: 100%; font-size: 16px; }
+    .lightbox .lb-meta .meta { margin-top: 14px; }
+  }
+  @media (max-width: 430px) {
+    .nav { padding-left: 10px; padding-right: 10px; }
+    .brand { font-size: 16px; }
+    .layout-tabs button,
+    .date-nav-btn,
+    .presenter-btn,
+    .warp-btn,
+    .key-btn,
+    .date-pill { min-height: 40px; }
+    .date-nav { flex-wrap: wrap; }
+    .date-nav-btn { flex: 1 1 calc(33.333% - 4px); justify-content: center; }
+    .date-pill { padding: 8px 12px; }
+    .bo-card .bc-footer { flex-wrap: wrap; }
+    .card-lg { flex-basis: 88vw; }
+    .lightbox .lb-meta .desc { font-size: 15px; line-height: 1.75; }
+  }
+
+  /* ======================= REDUCED MOTION ======================= */
+  @media (prefers-reduced-motion: reduce) {
+    /* Intro */
+    .intro, .intro.gone { transition-duration: 0.01ms !important; }
+    .intro::after, .intro.gone::after { transition-duration: 0.01ms !important; }
+    /* 7 Signals gallery stagger */
+    #cine-gallery-scroll .card-lg { animation: none !important; opacity: 1 !important; transform: none !important; }
+    /* Asteroid Watch */
+    #aw-diagram line, #aw-diagram circle, #aw-diagram text, #aw-diagram path, #aw-diagram polygon { animation: none !important; opacity: 1 !important; transform: none !important; }
+    /* Earth Pulse globe entrance */
+    .ep-globe { transition: opacity 0.3s !important; transform: none !important; }
+    .ep-globe.loaded { animation: none !important; }
+    /* Globe rings */
+    .ep-globe-ring { animation: none !important; }
+    /* Mission Brief copy */
+    .mbc-btn.copied { animation: none !important; }
+    .mbc-copied { transition: opacity 0.2s !important; }
+    .mbc-copied.show { animation: none !important; opacity: 1 !important; }
+    /* Room flash */
+    .section-highlight { animation: none !important; outline: 2px solid rgba(255,180,100,0.35) !important; }
+    /* Lightbox */
+    .lightbox.open { animation: none !important; }
+    .lightbox .lb-img img { animation: none !important; }
+    .lightbox .lb-meta { animation: none !important; }
+    /* Archive cards */
+    #cine-lib-grid .card { animation: none !important; opacity: 1 !important; }
+    #mc-lib-rail .tile { animation: none !important; opacity: 1 !important; }
+  }
+</style>
+</head>
+<body data-view="cinematic">
+
+<!-- reticle -->
+<div class="reticle" id="reticle"><div class="ring"></div><div class="coord" id="coord">00.0° / 00.0°</div></div>
+
+<!-- intro -->
+<div class="intro" id="intro">
+  <div class="stars" id="stars"></div>
+  <div class="wordmark" aria-label="FAROUT"><span>F</span><span>A</span><span>R</span><span>O</span><span>U</span><span>T</span></div>
+  <div class="tagline">Where were you in the universe?</div>
+  <button class="skip" id="skipIntro" data-clickable>Begin the journey</button>
+  <div class="counter" id="introCount">The sky on any date that matters to you, drawn from NASA's open data</div>
+</div>
+
+<!-- nav -->
+<header class="nav">
+  <div class="brand"><span class="dot"></span>FAROUT<span class="sub">The sky on any date</span></div>
+  <div class="nav-right">
+    <button class="audio-btn" id="audioBtn" data-clickable title="Toggle Ambience">
+      <div class="wave"><span></span><span></span><span></span></div>
+      <span class="lbl">Sound</span>
+    </button>
+  <div class="date-control-group">
+      <div class="date-nav" role="group" aria-label="Date navigation">
+        <button class="date-nav-btn" id="dayPrevBtn" data-clickable title="Previous day">← Day</button>
+        <button class="date-nav-btn today-btn" id="dayTodayBtn" data-clickable title="Jump to today">Today</button>
+        <button class="date-nav-btn" id="dayNextBtn" data-clickable title="Next day">Day →</button>
+      </div>
+      <div class="date-pill" data-clickable>
+        <span class="label">DATE</span><input type="date" id="datePick" min="1995-06-16" />
+      </div>
+    </div>
+    <button class="key-btn has-key" id="keyBtn" data-clickable>Live Data ✓</button>
+  </div>
+</header>
+
+<!-- loading -->
+<div class="loading" id="loading">Loading your exhibition</div>
+
+<!-- VIEW 1: CINEMATIC -->
+<main class="view cinematic active" data-screen-label="01 Cinematic" data-view-name="cinematic">
+
+  <!-- Section 1: Today's Cosmos Signal (APOD hero) -->
+  <section class="chapter" id="cine-apod">
+    <div class="parallax-wrapper" id="parallax-wrapper">
+      <div class="hero-bg" id="cine-apod-bg"></div>
+    </div>
+    <div class="hero-veil"></div>
+    <div class="hero-content">
+      <div class="room-tag-hero">Room 01 · Cosmos Signal</div>
+      <div class="eyebrow"><span class="tick"></span><span id="cine-apod-eyebrow">Cosmos Signal</span></div>
+      <h1 id="cine-apod-title">Loading the Cosmos…</h1>
+      <div class="apod-curator-note">The opening piece in this exhibition.</div>
+      <div class="description" id="cine-apod-desc"></div>
+      <div class="meta-row" id="cine-apod-meta"></div>
+    </div>
+    <div class="scroll-hint">Scroll to explore</div>
+  </section>
+
+  <!-- Brief strip -->
+  <div class="brief-strip">
+    <div class="brief-accent"></div>
+    <div class="brief-body">
+      <div class="brief-tag">FAROUT · The sky on the day that matters</div>
+      <p class="brief-primary">NASA records the universe every day. <em>FAROUT turns any date into a journey through it.</em></p>
+      <p class="brief-secondary">Pick a date that means something. Then travel through what NASA saw on it: the cosmos image, the asteroids that passed near Earth, the planet from orbit, and the mission archive.</p>
+    </div>
+  </div>
+
+  <!-- Section 2: Exhibition Route Overview -->
+  <section class="briefing-overview">
+    <div class="bo-head">
+      <div>
+        <div class="bo-eyebrow">Exhibition Route · Four Rooms</div>
+        <h2 class="bo-title">Exhibition <em>Route</em>.</h2>
+        <p class="bo-orient">Choose a date. Enter its exhibition. Walk through NASA's images, archive rooms, asteroid activity, and Earth view.</p>
+        <div class="bo-helper" id="dateHelper">Choose a date to open a different NASA exhibition.</div>
+      </div>
+    </div>
+    <div class="bo-cards">
+      <div class="bo-card" data-target="#cine-apod">
+        <div class="bc-num">Room 01 ·</div>
+        <div class="bc-icon">✦</div>
+        <div class="bc-title">Cosmos <em>Signal</em></div>
+        <div class="bc-desc">What NASA chose for this date. The Astronomy Picture of the Day — one image from across the observable universe.</div>
+        <div class="bc-curator">The opening piece in this exhibition.</div>
+        <div class="bc-footer">
+          <span class="bc-status live">Live</span>
+          <button class="bc-enter" data-clickable>Enter Room</button>
+        </div>
+      </div>
+      <div class="bo-card" data-target="#cine-gallery">
+        <div class="bc-num">Corridor ·</div>
+        <div class="bc-icon">◎</div>
+        <div class="bc-title">The 7 <em>Signals</em></div>
+        <div class="bc-desc">Seven daily NASA images that lead into the selected date and set the pace for the exhibition.</div>
+        <div class="bc-curator">The archive corridor.</div>
+        <div class="bc-footer">
+          <span class="bc-status live">Live</span>
+          <button class="bc-enter" data-clickable>Enter Room</button>
+        </div>
+      </div>
+      <div class="bo-card" data-target="#cine-lib">
+        <div class="bc-num">Room 02 ·</div>
+        <div class="bc-icon">⬡</div>
+        <div class="bc-title">Planetary <em>Archive</em></div>
+        <div class="bc-desc">NASA mission imagery from across the solar system. Thousands of frames from the NASA Image and Video Library, by rotating theme.</div>
+        <div class="bc-curator">A deeper room from NASA's mission archive.</div>
+        <div class="bc-footer">
+          <span class="bc-status live">Live</span>
+          <button class="bc-enter" data-clickable>Enter Room</button>
+        </div>
+      </div>
+      <div class="bo-card" data-target="#asteroid-watch">
+        <div class="bc-num">Room 03 ·</div>
+        <div class="bc-icon">◎</div>
+        <div class="bc-title">Asteroid <em>Watch</em></div>
+        <div class="bc-desc">Near-Earth objects for this date. Proximity, velocity, size and hazard status from NASA's NeoWs.</div>
+        <div class="bc-curator">Objects moving through Earth's neighborhood.</div>
+        <div class="bc-footer">
+          <span class="bc-status live">Live</span>
+          <button class="bc-enter" data-clickable>Enter Room</button>
+        </div>
+      </div>
+      <div class="bo-card" data-target="#earth-pulse">
+        <div class="bc-num">Room 04 ·</div>
+        <div class="bc-icon">◈</div>
+        <div class="bc-title">Earth <em>Pulse</em></div>
+        <div class="bc-desc">Full-disk Earth imagery from the DSCOVR satellite, one million miles from Earth — captured by NASA's EPIC camera.</div>
+        <div class="bc-curator">The view back home.</div>
+        <div class="bc-footer">
+          <span class="bc-status live">Live</span>
+          <button class="bc-enter" data-clickable>Enter Room</button>
+        </div>
+      </div>
+      <div class="bo-card" data-target=".mbc-section">
+        <div class="bc-num">Exit ·</div>
+        <div class="bc-icon">◌</div>
+        <div class="bc-title">Exhibition <em>Snapshot</em></div>
+        <div class="bc-desc">A compact summary of the selected date. Cosmos, corridor, archive, asteroid activity, and Earth view.</div>
+        <div class="bc-curator">The closing summary.</div>
+        <div class="bc-footer">
+          <span class="bc-status live">Live</span>
+          <button class="bc-enter" data-clickable>Open Snapshot</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: Last 7 Signals (APOD timeline) -->
+  <section class="gallery-chapter" id="cine-gallery">
+    <div class="gallery-header">
+      <div>
+        <div class="corridor-tag">Corridor · Archive Sequence</div>
+        <h2>The Last 7 <em>Signals</em>.</h2>
+      </div>
+      <div class="sub">Seven NASA images, one per day, leading into the selected date.</div>
+    </div>
+    <div class="horizontal-scroll" id="cine-gallery-scroll">
+      <!-- Populated dynamically -->
+    </div>
+  </section>
+
+  <!-- Section 4: Planetary Archive (NASA Library) -->
+  <section class="librarygrid" id="cine-lib">
+    <div class="archive-shell">
+      <div class="section-title">
+        <div>
+          <div class="room-header">Room 02 · Planetary Archive · NASA Image Library</div>
+          <h2>Planetary <em>Archive</em>.</h2>
+          <div class="curator-note">A deeper room from NASA's mission archive.</div>
+        </div>
+        <div class="meta-small"><span id="cine-lib-count">— frames indexed</span> · Theme: <span id="cine-topic-label" style="color:var(--accent)">Nebula</span></div>
+      </div>
+      <div class="archive-nav">
+        <button class="archive-nav-btn" id="archivePrevBtn" type="button" data-clickable>← Previous</button>
+        <button class="archive-nav-btn" id="archiveNextBtn" type="button" data-clickable>Next →</button>
+      </div>
+      <div class="grid" id="cine-lib-grid">
+        <!-- populated -->
+      </div>
+    </div>
+  </section>
+
+  <div class="archive-toast hidden" id="archiveToast">Archive updated</div>
+
+  <!-- Section 5: Asteroid Watch -->
+  <section class="asteroid-watch" id="asteroid-watch">
+    <div class="aw-head">
+      <div>
+        <div class="aw-eyebrow"><span class="aw-ping"></span>Room 03 · Near-Earth Object Watch · NeoWs Telemetry</div>
+        <h2>Asteroid <em>Watch</em>.</h2>
+        <div class="curator-note">Objects moving through Earth's neighborhood.</div>
+      </div>
+      <div class="aw-badge" id="aw-badge">Acquiring…</div>
+    </div>
+    <div class="aw-vis-wrap">
+      <svg id="aw-diagram" viewBox="0 0 900 560" fill="none" xmlns="http://www.w3.org/2000/svg" class="aw-vis-svg"></svg>
+      <div class="aw-orb-note">Visualization scaled for readability. One lunar distance (LD) is the Earth-to-Moon distance, approximately 384,400 km. Objects beyond 10 LD are pinned to the outer ring. Distance from Earth is drawn to scale; the asteroid's direction and path are a stylised illustration, not its measured orbit.</div>
+    </div>
+    <div id="aw-summary" class="aw-summary" style="display:none"></div>
+    <div class="aw-grid" id="aw-grid">
+      <div class="aw-cell span2"><div class="aw-unavail">Acquiring telemetry…</div></div>
+    </div>
+    <div id="aw-hazard-note" style="display:none" class="aw-hazard-note"></div>
+  </section>
+
+  <!-- Section 6: Earth Pulse (NASA EPIC) -->
+  <section class="earth-pulse-section" id="earth-pulse">
+    <div class="ep-inner">
+      <div class="ep-meta">
+        <div class="ep-eyebrow"><span class="ep-ping"></span>Room 04 · Earth Pulse · NASA EPIC / DSCOVR</div>
+        <h2 class="ep-title">Earth <em>Pulse</em>.</h2>
+        <p class="ep-subtitle">The view back home.</p>
+        <div class="ep-explain">This is the most recent image of Earth taken by NASA's EPIC camera, aboard the DSCOVR satellite. DSCOVR holds position at the L1 gravitational point, roughly 1.5 million km from Earth, between our planet and the Sun. From there, EPIC photographs the full sunlit disk of Earth. No crop. No composite. The whole planet in one frame.</div>
+        <p class="ep-context">Every person alive is somewhere in this image.</p>
+        <div class="ep-data" id="ep-data">
+          <div class="ep-row"><span class="ep-k">Image Captured</span><span class="ep-v" id="ep-date">—</span></div>
+          <div class="ep-row"><span class="ep-k">Satellite</span><span class="ep-v" id="ep-source">DSCOVR · L1 Lagrange Point</span></div>
+          <div class="ep-row"><span class="ep-k">Earth Centroid</span><span class="ep-v" id="ep-centroid">—</span></div>
+        </div>
+        <div class="ep-caption" id="ep-caption"></div>
+        <div class="ep-unavail" id="ep-unavail" style="display:none">Earth image unavailable for this date.</div>
+      </div>
+      <div class="ep-globe-wrap">
+        <div class="ep-globe-ring"></div>
+        <div class="ep-globe-ring ep-ring-2"></div>
+        <div class="ep-globe-ring ep-ring-3"></div>
+        <img class="ep-globe" id="ep-globe" src="" alt="Full-disk Earth image from NASA EPIC" loading="lazy" />
+        <div class="ep-globe-veil"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 7: Exhibition Snapshot -->
+  <section class="mbc-section" id="mbc-section">
+    <div class="mbc-wrap">
+
+      <!-- Left: label column -->
+      <div class="mbc-label-col">
+        <div class="mbc-eyebrow"><span class="mbc-ping"></span>The keepsake</div>
+        <h2 class="mbc-heading">Your <em>keepsake</em>.</h2>
+        <p class="mbc-sub">A snapshot of the universe on this date. Made to share.</p>
+      </div>
+
+      <!-- Right: the card itself -->
+      <div class="mbc-card" id="mbcCard">
+        <div class="mbc-hero" id="mbc-hero" style="position:relative;height:210px;border-radius:10px;overflow:hidden;background:#0a0a0b 50% 45%/cover no-repeat;margin-bottom:22px;">
+          <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.92) 6%,rgba(0,0,0,.12) 58%,rgba(0,0,0,.45));"></div>
+          <div style="position:absolute;top:14px;left:16px;right:16px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-dim);">
+            <span>FAROUT</span><span class="mbc-card-date" id="mbc-date">—</span>
+          </div>
+          <div id="mbc-hero-title" style="position:absolute;bottom:14px;left:16px;right:16px;font-family:var(--serif);font-weight:500;font-size:26px;line-height:1.05;color:var(--ink);text-shadow:0 1px 24px rgba(0,0,0,.7);">—</div>
+        </div>
+        <div class="mbc-card-body">
+          <div class="mbc-row">
+            <div class="mbc-row-icon">✦</div>
+            <div class="mbc-row-content">
+              <div class="mbc-row-label">Cosmos Signal</div>
+              <div class="mbc-row-value" id="mbc-apod-title">—</div>
+              <div class="mbc-row-sub" id="mbc-apod-date">NASA APOD</div>
+            </div>
+          </div>
+
+          <div class="mbc-row">
+            <div class="mbc-row-icon">○</div>
+            <div class="mbc-row-content">
+              <div class="mbc-row-label">Asteroid Watch</div>
+              <div class="mbc-row-value" id="mbc-asteroid-val">—</div>
+              <div class="mbc-row-sub" id="mbc-asteroid-sub">NeoWs · Near-Earth Objects</div>
+            </div>
+          </div>
+
+          <div class="mbc-row">
+            <div class="mbc-row-icon">◇</div>
+            <div class="mbc-row-content">
+              <div class="mbc-row-label">Earth Pulse</div>
+              <div class="mbc-row-value" id="mbc-epic-val">—</div>
+              <div class="mbc-row-sub">NASA EPIC / DSCOVR</div>
+            </div>
+          </div>
+
+          <div class="mbc-row">
+            <div class="mbc-row-icon">□</div>
+            <div class="mbc-row-content">
+              <div class="mbc-row-label">Planetary Archive</div>
+              <div class="mbc-row-value" id="mbc-lib-val">—</div>
+              <div class="mbc-row-sub" id="mbc-lib-sub">NASA Image Library</div>
+            </div>
+          </div>
+
+        </div>
+        <div class="mbc-card-divider"></div>
+        <div class="mbc-share" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;">
+          <button class="mbc-btn" id="mbcShareLinkedIn" type="button">Share on LinkedIn</button>
+          <button class="mbc-btn" id="mbcCopyLink" type="button">Copy link</button>
+          <button class="mbc-btn" id="mbcCopySummaryBtn" type="button">Copy summary</button>
+        </div>
+        <div class="mbc-card-footer" style="margin-top:18px;">One date. One journey through the universe.</div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<!-- VIEW 2: CONTROL ROOM -->
+<main class="view mission" data-screen-label="02 Control Room" data-view-name="mission">
+  <div class="cr-wrap">
+
+    <!-- Masthead -->
+    <div class="cr-masthead">
+      <div>
+        <div class="cr-masthead-label">FAROUT · Control Room</div>
+        <div class="cr-masthead-date">Exhibition Date · <span id="mc-date">—</span></div>
+      </div>
+      <div class="cr-source-strip">
+        <div class="cr-src-pill"><span class="cr-src-dot cr-ok"></span>NASA APOD</div>
+        <div class="cr-src-pill"><span class="cr-src-dot cr-ok"></span>APOD Range</div>
+        <div class="cr-src-pill"><span class="cr-src-dot cr-ok"></span>Image Library</div>
+        <div class="cr-src-pill"><span class="cr-src-dot cr-ok"></span>NeoWs</div>
+        <div class="cr-src-pill"><span class="cr-src-dot cr-ok"></span>EPIC / DSCOVR</div>
+      </div>
+      <button class="cr-buildlog-btn" id="crBuildLogBtn" type="button" data-clickable>View Build Log ↓</button>
+    </div>
+
+    <!-- 6-Panel Grid -->
+    <div class="cr-panels">
+
+      <!-- 01 · Cosmos Signal -->
+      <div class="cr-panel" data-target="#cine-apod">
+        <div class="cr-panel-hd">
+          <span class="cr-pnum">01</span>
+          <span class="cr-psrc">NASA APOD</span>
+          <span class="cr-pstatus cr-ok" id="mc-signal-status">ACQUIRED</span>
+        </div>
+        <div class="cr-ptitle">Cosmos Signal</div>
+        <div class="cr-thumb-wrap" data-clickable id="mc-apod-frame">
+          <div class="cr-thumb-bg" id="mc-apod-bg"></div>
+          <div class="cr-thumb-xhair"></div>
+          <div class="cr-thumb-label"><span id="mc-apod-src">COSMOS SIGNAL</span><span id="mc-apod-time">—</span></div>
+        </div>
+        <div class="cr-pname" id="mc-apod-title">—</div>
+        <div class="cr-prows" id="mc-apod-telemetry"></div>
+        <div class="cr-phidden" id="mc-apod-tag" aria-hidden="true"></div>
+        <div class="cr-phidden" id="mc-apod-desc" aria-hidden="true"></div>
+      </div>
+
+      <!-- Corridor · The 7 Signals -->
+      <div class="cr-panel" data-target="#cine-gallery">
+        <div class="cr-panel-hd">
+          <span class="cr-pnum">Corridor</span>
+          <span class="cr-psrc">NASA APOD Range</span>
+          <span class="cr-pcount" id="mc-nodes">—</span>
+        </div>
+        <div class="cr-ptitle">The 7 Signals</div>
+        <div class="cr-mini-rail" id="mc-rand-rail"></div>
+        <div class="cr-pmeta" id="mc-rand-info">—</div>
+      </div>
+
+      <!-- 02 · Planetary Archive -->
+      <div class="cr-panel" data-target="#cine-lib">
+        <div class="cr-panel-hd">
+          <span class="cr-pnum">02</span>
+          <span class="cr-psrc">NASA Image Library</span>
+          <span class="cr-pcount" id="mc-hits">— frames</span>
+        </div>
+        <div class="cr-lib-header">
+          <div class="cr-ptitle">Planetary Archive</div>
+          <div class="cr-lib-nav">
+            <button class="archive-nav-btn" id="mcArchivePrevBtn" type="button" data-clickable>← Previous Theme</button>
+            <button class="archive-nav-btn" id="mcArchiveNextBtn" type="button" data-clickable>Next Theme →</button>
+          </div>
+        </div>
+        <div class="cr-mini-rail cr-lib-rail" id="mc-lib-rail"></div>
+        <div class="cr-pmeta" id="mc-lib-info">Current Theme: —</div>
+      </div>
+
+      <!-- 03 · Asteroid Watch -->
+      <div class="cr-panel" data-target="#asteroid-watch">
+        <div class="cr-panel-hd">
+          <span class="cr-pnum">03</span>
+          <span class="cr-psrc">NASA NeoWs</span>
+          <span class="cr-pstatus cr-ok" id="cr-neo-status">ACQUIRING</span>
+        </div>
+        <div class="cr-ptitle">Asteroid Watch</div>
+        <div class="cr-data-rows">
+          <div class="cr-dr"><span class="cr-dk">Objects Tracked</span><span class="cr-dv" id="cr-neo-total">—</span></div>
+          <div class="cr-dr"><span class="cr-dk">Potentially Hazardous</span><span class="cr-dv" id="cr-neo-haz">—</span></div>
+          <div class="cr-dr"><span class="cr-dk">Closest Object</span><span class="cr-dv" id="cr-neo-closest">—</span></div>
+          <div class="cr-dr"><span class="cr-dk">Miss Distance</span><span class="cr-dv" id="cr-neo-dist">—</span></div>
+          <div class="cr-dr"><span class="cr-dk">Fastest Velocity</span><span class="cr-dv" id="cr-neo-vel">—</span></div>
+        </div>
+      </div>
+
+      <!-- 04 · Earth Pulse -->
+      <div class="cr-panel" data-target="#earth-pulse">
+        <div class="cr-panel-hd">
+          <span class="cr-pnum">04</span>
+          <span class="cr-psrc">NASA EPIC / DSCOVR</span>
+          <span class="cr-pstatus cr-ok" id="cr-epic-status">ACQUIRING</span>
+        </div>
+        <div class="cr-ptitle">Earth Pulse</div>
+        <div class="cr-epic-thumb-wrap">
+          <img class="cr-epic-thumb" id="cr-epic-img" src="" alt="Earth full-disk from EPIC" loading="lazy" />
+        </div>
+        <div class="cr-data-rows">
+          <div class="cr-dr"><span class="cr-dk">Captured</span><span class="cr-dv" id="cr-epic-date">—</span></div>
+          <div class="cr-dr"><span class="cr-dk">Earth Centroid</span><span class="cr-dv" id="cr-epic-centroid">—</span></div>
+          <div class="cr-dr"><span class="cr-dk">Satellite</span><span class="cr-dv">DSCOVR · L1 Lagrange Point</span></div>
+        </div>
+      </div>
+
+      <!-- Exit · Exhibition Snapshot -->
+      <div class="cr-panel" data-target=".mbc-section">
+        <div class="cr-panel-hd">
+          <span class="cr-pnum">Exit</span>
+          <span class="cr-psrc">Compiled Summary</span>
+          <span class="cr-pstatus cr-ok">COMPILED</span>
+        </div>
+        <div class="cr-ptitle">Exhibition Snapshot</div>
+        <div class="cr-data-rows">
+          <div class="cr-dr"><span class="cr-dk">Cosmos Signal</span><span class="cr-dv" id="cr-mbc-apod">—</span></div>
+          <div class="cr-dr"><span class="cr-dk">Asteroid Watch</span><span class="cr-dv" id="cr-mbc-neo">—</span></div>
+          <div class="cr-dr"><span class="cr-dk">Earth Pulse</span><span class="cr-dv" id="cr-mbc-epic">—</span></div>
+          <div class="cr-dr"><span class="cr-dk">Archive Theme</span><span class="cr-dv" id="cr-mbc-lib">—</span></div>
+        </div>
+        <div class="cr-card-note">All four rooms compiled. Open Snapshot to copy the full exhibition brief.</div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox">
+  <button class="lb-close-btn" id="lbClose" data-clickable aria-label="Close">✕</button>
+  <div class="lb-inner">
+    <div class="lb-img" id="lbImg">
+      <div class="lb-edge left" data-lb-step="-1"></div>
+      <div class="lb-edge right" data-lb-step="1"></div>
+      <div class="lb-nav-strip">
+        <button class="lb-nav-btn" id="lbPrev" type="button" data-clickable>← Previous</button>
+        <div class="lb-position" id="lbPosition">—</div>
+        <button class="lb-nav-btn" id="lbNext" type="button" data-clickable>Next →</button>
+      </div>
+    </div>
+    <div class="lb-meta" id="lbMetaPanel">
+      <div class="eyebrow" id="lbEyebrow">—</div>
+      <h3 id="lbTitle">—</h3>
+      <div class="desc" id="lbDesc"></div>
+      <div class="meta" id="lbMeta"></div>
+    </div>
+  </div>
+</div>
+
+<!-- KEY PANEL -->
+<div class="keypanel" id="keypanel">
+  <div class="box">
+  <h3>Behind the Signal</h3>
+  <p>FAROUT requests NASA’s open data through a secure server route. The API key stays hidden. The browser only receives the finished exhibition data.</p>
+    <div class="flow" aria-label="NASA data flow diagram">
+      <div class="flow-row">
+        <div class="flow-box">FAROUT browser</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-box">secure server</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-box">NASA APIs</div>
+        <div class="flow-arrow"></div>
+        <div class="flow-box">exhibition rooms</div>
+      </div>
+    </div>
+    <div class="chips">
+      <div class="chip">APOD</div>
+      <div class="chip">NeoWs</div>
+      <div class="chip">EPIC</div>
+      <div class="chip">NASA Image Library</div>
+    </div>
+    <div class="status-ok">
+      <div>NASA key hidden</div>
+      <div>Live data delivered</div>
+      <div>Connection nominal</div>
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="keyClose" data-clickable>Close</button>
+    </div>
+  </div>
+</div>
+
+<footer class="credit">
+  <div class="credit-inner">
+    <span class="credit-mark">FAROUT</span><span class="credit-sep">—</span>
+    <span class="credit-text">AVISHEK CHATTERJEE</span><span class="credit-sep">·</span>
+    <span class="credit-text">Powered by <a href="https://api.nasa.gov" target="_blank" data-clickable>NASA Open APIs</a></span>
+  </div>
+</footer>
+
+<div class="presenter-tour" id="presenterTour">
+  <div class="presenter-tour-card">
+    <div class="presenter-tour-top">
+      <div class="presenter-tour-label" id="presenterLabel">Guided Tour</div>
+      <div class="presenter-tour-top-right">
+        <span id="presenterStatus" class="presenter-tour-status">Playing</span>
+        <span id="presenterCounter">1 of 8</span>
+      </div>
+    </div>
+    <div class="presenter-tour-caption" id="presenterCaption">NASA publishes something extraordinary every day.</div>
+    <div class="presenter-tour-controls">
+      <button type="button" id="presenterPrevBtn" data-clickable>← Previous</button>
+      <button type="button" id="presenterPauseBtn" data-clickable>Pause</button>
+      <button type="button" id="presenterNextBtn" data-clickable>Next →</button>
+      <button type="button" id="presenterExitBtn" data-clickable>Exit Tour</button>
+    </div>
+    <div class="presenter-tour-hint">Keyboard: Space pause · ← previous · → next · Esc exit</div>
+  </div>
+</div>
+
+<div class="errbar" id="errbar"></div>
+
+<script>
+(() => {
+  'use strict';
+
+  const LS_VIEW = 'farout.view';
+  const LS_INTRO = 'farout.introSeen';
+  const LS_DATE = 'farout.date';
+  const APOD_MIN_STR = '1995-06-16';
+  const APOD_MIN = new Date(Date.UTC(1995, 5, 16)); // APOD launched June 16, 1995
+
+  const SEARCH_TOPICS = ["Nebula", "Galaxy Cluster", "Hubble Deep Field", "Mars", "Saturn Rings", "Moon", "Jupiter", "Solar Flare", "Black Hole", "Space Telescope", "Earth From Space", "Apollo"];
+
+  const state = {
+    date: null,
+    currentTopic: "Nebula",
+    data: { apod: null, recentApods: [], library: [], asteroid: null, epic: null },
+  };
+
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const pad = n => String(n).padStart(2, '0');
+  const fmtDate = d => `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
+  const escapeHTML = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  const secureUrl = url => url ? url.replace(/^http:/, 'https:') : '';
+  const setBG = (el, url) => { if (el) el.style.backgroundImage = url ? `url("${secureUrl(url)}")` : 'none'; };
+  const dateHelper = $('#dateHelper');
+  const loading = $('#loading');
+
+  // Sanitize NASA API description text for lightbox display.
+  //
+  // Root cause of the raw-HTML bug: NASA API fields often contain HTML markup
+  // (e.g. <b>Credit:</b> <a href="...">link</a>). The old regex approach was
+  // fragile — it missed malformed tags, self-closing tags, tags spanning
+  // multiple lines, and HTML-encoded angle brackets (&lt;b&gt;) that the
+  // browser decoded AFTER the regex ran, producing visible "<b>" in output.
+  //
+  // Fix: use the browser's own HTML parser via a detached DOM element.
+  // Setting innerHTML on a detached div is safe (scripts do not execute),
+  // and reading .textContent gives us all text nodes with every tag stripped
+  // and every entity decoded in one atomic step. We then re-wrap paragraphs
+  // in our own <p> tags (with the text safely HTML-escaped first so any
+  // literal < > & characters in the original text render as text, not markup).
+  const sanitizeDesc = (raw) => {
+    if (!raw) return '';
+
+    // Step 1: Parse via detached DOM element — browser handles all tag and
+    // entity decoding correctly regardless of how malformed the source is.
+    const tmp = document.createElement('div');
+    tmp.innerHTML = raw;
+
+    // Step 2: Extract pure text. textContent recurses all text nodes,
+    // strips every tag, and decodes every entity (&amp; → &, &lt; → <, etc.)
+    let text = tmp.textContent || tmp.innerText || '';
+
+    // Step 3: Normalize whitespace left by removed block-level elements.
+    text = text
+      .replace(/[ \t]{2,}/g, ' ')     // collapse inline whitespace runs
+      .replace(/\s*\n\s*/g, '\n')      // trim whitespace around newlines
+      .replace(/\n{3,}/g, '\n\n')      // collapse 3+ blank lines to one
+      .trim();
+
+    // Step 4: Remove bare URLs (http/https strings NASA sometimes appends
+    // as raw reference links after stripping their surrounding <a> elements).
+    text = text
+      .replace(/https?:\/\/\S+/g, '')
+      .replace(/[ \t]{2,}/g, ' ')
+      .trim();
+
+    // Step 5: Escape any literal < > & characters that appear in the plain
+    // text itself, so they render as text when we write our <p> wrappers.
+    const esc = (s) => s
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+
+    // Step 6: Split on paragraph breaks, wrap each in a <p>, return safe HTML.
+    // Single newlines within a paragraph become <br>.
+    return text
+      .split('\n\n')
+      .map(p => p.trim())
+      .filter(Boolean)
+      .map(p => `<p>${esc(p).replace(/\n/g, '<br>')}</p>`)
+      .join('');
+  };
+
+  const cleanText = (raw) => {
+    if (!raw) return '';
+    const tmp = document.createElement('div');
+    tmp.innerHTML = raw;
+    return (tmp.textContent || tmp.innerText || '')
+      .replace(/https?:\/\/\S+/g, '')
+      .replace(/[ \t]{2,}/g, ' ')
+      .replace(/\s*\n\s*/g, ' ')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+  };
+
+  const showError = (msg) => {
+    const bar = $('#errbar'); if (!bar) return;
+    bar.textContent = msg; bar.classList.add('show');
+    clearTimeout(showError._t); showError._t = setTimeout(() => bar.classList.remove('show'), 7000);
+  };
+
+  /* ======================= WEB AUDIO API SYNTH ======================= */
+  let audioCtx, masterGain;
+  let isAudioPlaying = false;
+
+  function initAudio() {
+    if (audioCtx) return;
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AC();
+      const sr = audioCtx.sampleRate;
+
+      // ── Safety limiter ───────────────────────────────────────────────────
+      // Transparent DynamicsCompressor as a soft ceiling. Threshold −18 dB,
+      // ratio 2:1 — completely inaudible at normal levels, prevents any
+      // accidental digital clipping if layers phase-add above 1.0.
+      const limiter = audioCtx.createDynamicsCompressor();
+      limiter.threshold.value = -18;
+      limiter.knee.value      =  10;
+      limiter.ratio.value     =   2;
+      limiter.attack.value    = 0.05;
+      limiter.release.value   = 0.30;
+      limiter.connect(audioCtx.destination);
+
+      // ── Master gain — starts at 0, fades in on user click ───────────────
+      masterGain = audioCtx.createGain();
+      masterGain.gain.value = 0;
+      masterGain.connect(limiter);
+
+      // ── Layer 1: Deep brown-noise room tone ──────────────────────────────
+      //
+      // Problem with the old design: a single lowpass at 100 Hz gives only
+      // 12 dB/octave rolloff, so energy above 100 Hz leaks through as a faint
+      // hiss that the ear reads as "buzz" or "wind."
+      //
+      // Fix: two cascaded lowpass filters (24 dB/octave total rolloff).
+      //   Stage 1: 480 Hz, Q 0.5  — removes all mid/high content broadly
+      //   Stage 2:  88 Hz, Q 1.1  — narrows to genuine sub-bass; the slight
+      //             Q lift at 88 Hz adds a very gentle warmth resonance that
+      //             makes the noise feel like a room rather than machinery.
+      //
+      // 4-second buffer (vs 2 s before): the loop crosspoint is further apart
+      // so the periodicity of the loop is inaudible.
+
+      const bufLen   = sr * 4;
+      const noiseBuf = audioCtx.createBuffer(1, bufLen, sr);
+      const noiseData = noiseBuf.getChannelData(0);
+      for (let i = 0; i < bufLen; i++) noiseData[i] = Math.random() * 2 - 1;
+
+      const noiseSrc  = audioCtx.createBufferSource();
+      noiseSrc.buffer = noiseBuf;
+      noiseSrc.loop   = true;
+
+      const nf1 = audioCtx.createBiquadFilter();
+      nf1.type            = 'lowpass';
+      nf1.frequency.value = 480;
+      nf1.Q.value         = 0.5;
+
+      const nf2 = audioCtx.createBiquadFilter();
+      nf2.type            = 'lowpass';
+      nf2.frequency.value = 88;
+      nf2.Q.value         = 1.1; // gentle warmth lift at 88 Hz
+
+      // Two-stage cascade has significant insertion loss (most noise energy
+      // is above 88 Hz). Compensate with higher pre-master gain.
+      const noiseGain = audioCtx.createGain();
+      noiseGain.gain.value = 0.32;
+
+      noiseSrc.connect(nf1);
+      nf1.connect(nf2);
+      nf2.connect(noiseGain);
+      noiseGain.connect(masterGain);
+      noiseSrc.start();
+
+      // ── Layer 2: Breathing pad oscillators ──────────────────────────────
+      //
+      // Problem with the old design: pure sine oscillators at 55 Hz are very
+      // clean — they ring like a test tone rather than a warm breath. The
+      // 0.3 Hz beating (from 55.0 + 55.3 Hz) also felt mechanical at short
+      // periods.
+      //
+      // Fix:
+      //   · Triangle wave instead of sine — identical fundamental but includes
+      //     odd harmonics at 1/n² amplitude (165 Hz at 1/9, 275 Hz at 1/25).
+      //     After the individual lowpass filter at 160 Hz, only the fundamental
+      //     survives, but the different waveshape gives a subtly warmer phase
+      //     character that removes the "test tone" quality.
+      //   · 55.0 + 55.4 Hz (0.4 Hz apart): 2.5 s beat cycle — slightly longer
+      //     than before, feels like one slow breath rather than a pulse.
+      //   · LFOs at 1/13 Hz and 1/11 Hz (LCM = 143 s before repeating) — the
+      //     long non-repeating period means the texture feels alive, never
+      //     mechanical.
+      //   · Gain range: 0.004 to 0.048 (intrinsic 0.026 ± scale 0.022).
+      //     The near-zero trough creates organic silence between breaths.
+
+      const makePad = (freq, lfoHz) => {
+        const osc      = audioCtx.createOscillator();
+        osc.type       = 'triangle';
+        osc.frequency.value = freq;
+
+        // Per-pad lowpass — removes triangle upper harmonics, keeps fundamental
+        const padLP    = audioCtx.createBiquadFilter();
+        padLP.type     = 'lowpass';
+        padLP.frequency.value = 160;
+        padLP.Q.value  = 0.4;
+
+        const gNode    = audioCtx.createGain();
+        gNode.gain.value = 0.026; // intrinsic midpoint
+
+        const lfo      = audioCtx.createOscillator();
+        lfo.type       = 'sine';
+        lfo.frequency.value = lfoHz;
+
+        const lfoScale = audioCtx.createGain();
+        lfoScale.gain.value = 0.022; // scales LFO -1..+1 to ±0.022
+
+        lfo.connect(lfoScale);
+        lfoScale.connect(gNode.gain); // AudioParam summing: 0.026 ± 0.022 → [0.004, 0.048]
+        osc.connect(padLP);
+        padLP.connect(gNode);
+        gNode.connect(masterGain);
+
+        osc.start();
+        lfo.start();
+      };
+
+      makePad(55.0, 1 / 13); // 13 s breathing cycle
+      makePad(55.4, 1 / 11); // 11 s breathing cycle, async with first
+
+      // ── Layer 3: Distant shimmer ─────────────────────────────────────────
+      //
+      // Problem with the old design: a single pure sine at 880 Hz, even at
+      // gain 0.008, is tonally clean enough that the ear picks it out and
+      // reads it as a "buzz" or "ring."
+      //
+      // Fix: two sines at 880.0 Hz and 880.15 Hz detuned by 0.15 Hz.
+      //   · 0.15 Hz beating = one full amplitude cycle every ~6.7 seconds.
+      //     This is too slow for the ear to track as a tremolo — instead it
+      //     registers as a slow spatial "breathing" of the high tone, making
+      //     it feel like reverberant air rather than a pitched sound.
+      //   · Both at gain 0.003 each through a shared shimmer bus (total 0.006).
+      //   · A second slow LFO at 1/28 Hz modulates the shimmer bus ±0.003,
+      //     creating 28-second long-form evolution. The listener never hears
+      //     the same shimmer density twice in a short session.
+
+      const shimBus = audioCtx.createGain();
+      shimBus.gain.value = 0.006;
+      shimBus.connect(masterGain);
+
+      [880.0, 880.15].forEach(f => {
+        const osc  = audioCtx.createOscillator();
+        osc.type   = 'sine';
+        osc.frequency.value = f;
+        const half = audioCtx.createGain();
+        half.gain.value = 0.5; // each contributes 0.5 of shimBus → 0.003 each
+        osc.connect(half);
+        half.connect(shimBus);
+        osc.start();
+      });
+
+      // Shimmer LFO: 28 s cycle, modulates shimBus.gain ±0.003
+      const shimLFO = audioCtx.createOscillator();
+      shimLFO.type  = 'sine';
+      shimLFO.frequency.value = 1 / 28;
+      const shimLFOScale = audioCtx.createGain();
+      shimLFOScale.gain.value = 0.003;
+      shimLFO.connect(shimLFOScale);
+      shimLFOScale.connect(shimBus.gain); // shimBus.gain oscillates 0.003 to 0.009
+      shimLFO.start();
+
+    } catch (e) {
+      console.warn('Web Audio API not supported', e);
+    }
+  }
+
+  function toggleAudio(forceState = null) {
+    if (!audioCtx) initAudio();
+    if (!audioCtx) return; // init failed (API unavailable)
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    const targetState = forceState !== null ? forceState : !isAudioPlaying;
+    const btn = $('#audioBtn');
+
+    if (targetState) {
+      // 4-second linear fade in to 0.32 (was 0.6 — lower = more subtle)
+      masterGain.gain.cancelScheduledValues(audioCtx.currentTime);
+      masterGain.gain.setValueAtTime(masterGain.gain.value, audioCtx.currentTime);
+      masterGain.gain.linearRampToValueAtTime(0.32, audioCtx.currentTime + 4);
+      isAudioPlaying = true;
+      if (btn) btn.classList.add('on');
+    } else {
+      // 2.5-second linear fade out — slow enough to avoid any click artifact
+      masterGain.gain.cancelScheduledValues(audioCtx.currentTime);
+      masterGain.gain.setValueAtTime(masterGain.gain.value, audioCtx.currentTime);
+      masterGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 2.5);
+      isAudioPlaying = false;
+      if (btn) btn.classList.remove('on');
+    }
+  }
+
+  $('#audioBtn').addEventListener('click', () => toggleAudio());
+
+  // Exponential backoff fetch
+  const safeFetch = async (url, opts = {}) => {
+    let lastErr;
+    for (let i = 0; i < 3; i++) {
+      try {
+        const r = await fetch(url, opts);
+        if (!r.ok) {
+          if (r.status === 429) throw new Error('NASA API rate limit exceeded.');
+          throw new Error(`HTTP ${r.status}`);
+        }
+        return await r.json();
+      } catch (err) {
+        lastErr = err;
+        await new Promise(res => setTimeout(res, Math.pow(2, i) * 800));
+      }
+    }
+    throw lastErr;
+  };
+
+  /* ======================= API — proxied through server ======================= */
+  const API = {
+    async apod(date) {
+      const u = new URL('/api/apod', location.origin);
+      u.searchParams.set('date', fmtDate(date));
+      return safeFetch(u);
+    },
+    async apodRange(endDate, daysBack = 7) {
+      const start = new Date(endDate);
+      start.setUTCDate(start.getUTCDate() - daysBack);
+
+      const endExcl = new Date(endDate);
+      endExcl.setUTCDate(endExcl.getUTCDate() - 1);
+
+      const u = new URL('/api/apod-range', location.origin);
+      u.searchParams.set('start_date', fmtDate(start));
+      u.searchParams.set('end_date', fmtDate(endExcl));
+
+      const data = await safeFetch(u);
+      return Array.isArray(data) ? data.reverse() : [];
+    },
+    async asteroids(date) {
+      const u = new URL('/api/asteroids', location.origin);
+      u.searchParams.set('start_date', fmtDate(date));
+      u.searchParams.set('end_date', fmtDate(date));
+      return safeFetch(u);
+    },
+    async library(query, date) {
+      const u = new URL('/api/library', location.origin);
+      u.searchParams.set('q', query);
+      if (date) {
+        const d = new Date(date);
+        if (!isNaN(d)) {
+          const year = d.getUTCFullYear();
+          const month = d.getUTCMonth() + 1;
+          const day = d.getUTCDate();
+          const seed = year * 372 + month * 31 + day;
+          const startYear = 1960 + (seed % 40);
+          u.searchParams.set('year_start', String(startYear));
+        }
+      }
+      const d = await safeFetch(u);
+      return (d?.collection?.items || []).slice(0, 30).map(it => {
+        const d0 = it.data?.[0] || {};
+        const l0 = it.links?.[0] || {};
+        return {
+          title: d0.title || 'Untitled', description: d0.description || '', date: d0.date_created || '',
+          center: d0.center || '', photographer: d0.photographer || d0.secondary_creator || '',
+          thumb: secureUrl(l0.href) || '', keywords: d0.keywords || [],
+        };
+      }).filter(x => x.thumb);
+    },
+    async epic() {
+      return safeFetch(new URL('/api/epic', location.origin));
+    }
+  };
+
+  function renderPrimaryAPOD(d) {
+    const isVideo = d?.media_type === 'video';
+    const url = isVideo ? d.thumbnail_url : (d?.hdurl || d?.url);
+    const title = d?.title || '—';
+    const desc = d?.explanation || '';
+    const date = d?.date || '';
+
+    // Cinematic
+    setBG($('#cine-apod-bg'), url);
+    $('#cine-apod-eyebrow').textContent = `Cosmos Signal · ${date}`;
+    $('#cine-apod-title').innerHTML = htmlizeTitle(title);
+    $('#cine-apod-desc').textContent = truncate(desc, 320);
+    $('#cine-apod-meta').innerHTML = [kv('Date', date), kv('Source', 'NASA APOD'), kv('Media', isVideo ? 'Video' : 'Image')].join('');
+
+    // Mission
+    setBG($('#mc-apod-bg'), url);
+    $('#mc-apod-src').textContent = `COSMOS SIGNAL · ${date}`;
+    $('#mc-apod-title').innerHTML = htmlizeTitle(title);
+    $('#mc-apod-desc').textContent = desc;
+    $('#mc-date').textContent = date;
+    $('#mc-apod-frame').dataset.lb = JSON.stringify({ src: secureUrl(url), title, desc, eyebrow: `Cosmos Signal · ${date}`, meta: { Date: date, Source: 'NASA APOD' } });
+  }
+
+  let galleryState = {
+    recent: [],
+    recentIndex: 0,
+    archive: [],
+    archiveIndex: 0,
+    active: null,
+  };
+
+  function setGalleryActive(scope, idx) {
+    const nodes = scope === 'recent' ? $$('#cine-gallery-scroll .card-lg') : $$('#cine-lib-grid .card');
+    nodes.forEach((n, i) => n.classList.toggle('is-active', i === idx));
+    const target = nodes[idx];
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }
+
+  function openGalleryLB(scope, idx) {
+    const list = scope === 'recent' ? galleryState.recent : galleryState.archive;
+    const item = list[idx];
+    if (!item) return;
+    galleryState.active = scope;
+    const activeIdx = Number.isFinite(item.idx) ? item.idx : idx;
+    if (scope === 'recent') galleryState.recentIndex = activeIdx;
+    if (scope === 'archive') galleryState.archiveIndex = activeIdx;
+    openLB(JSON.stringify(item));
+    updateLightboxNav();
+    setGalleryActive(scope, activeIdx);
+  }
+
+  function renderRecentAPODs(arr) {
+    // Cinematic Gallery (Last 7 Signals)
+    galleryState.recent = arr.map((it, idx) => ({
+      src: secureUrl(it.media_type === 'video' ? it.thumbnail_url : it.url),
+      title: it.title,
+      desc: it.explanation,
+      eyebrow: `Signal Log · ${it.date}`,
+      meta: { Date: it.date, Source: 'NASA APOD' },
+      idx,
+    })).filter(it => it.src);
+    galleryState.recentIndex = Math.min(galleryState.recentIndex, Math.max(0, galleryState.recent.length - 1));
+    const scroll = $('#cine-gallery-scroll');
+    scroll.innerHTML = '';
+    if (!arr.length) {
+      scroll.innerHTML = '<div class="gallery-unavail">Signal log unavailable for this date window.</div>';
+    }
+    arr.forEach((it, idx) => {
+      const url = it.media_type === 'video' ? it.thumbnail_url : it.url;
+      if (!url) return;
+      const el = document.createElement('div');
+      el.className = 'card-lg'; el.dataset.clickable = '';
+      el.style.setProperty('--i', idx);
+      el.dataset.gallery = 'recent';
+      el.dataset.index = String(idx);
+      el.dataset.lb = JSON.stringify({ src: secureUrl(url), title: it.title, desc: it.explanation, eyebrow: `Signal Log · ${it.date}`, meta: { Date: it.date, Source: 'NASA APOD' } });
+      el.innerHTML = `
+        <img src="${secureUrl(url)}" alt="" loading="lazy">
+        <div class="info"><div class="date">${it.date}</div><h3>${escapeHTML(it.title)}</h3></div>
+      `;
+      el.addEventListener('click', () => openGalleryLB('recent', idx));
+      scroll.appendChild(el);
+    });
+
+    // Mission Strip
+    const rail = $('#mc-rand-rail');
+    rail.innerHTML = '';
+    $('#mc-nodes').textContent = arr.length;
+    $('#mc-rand-info').textContent = `${arr.length} consecutive signal nodes`;
+    arr.slice(0,8).forEach((it, idx) => {
+      const url = it.media_type === 'video' ? it.thumbnail_url : it.url;
+      const el = document.createElement('div');
+      el.className = 'tile'; el.dataset.clickable = '';
+      el.dataset.gallery = 'recent';
+      el.dataset.index = String(idx);
+      el.dataset.lb = JSON.stringify({ src: secureUrl(url), title: it.title, desc: it.explanation, eyebrow: `Signal Log · ${it.date}`, meta: { Date: it.date, Source: 'NASA APOD' } });
+      el.innerHTML = `<img src="${secureUrl(url)}" loading="lazy"><div class="stamp">${it.date}</div>`;
+      rail.appendChild(el);
+    });
+  }
+
+  function renderLibrary(items) {
+    const topic = state.currentTopic;
+    $('#cine-topic-label').textContent = topic;
+    $('#mc-lib-info').textContent = `Theme: ${topic}`;
+
+    galleryState.archive = items.map((it, idx) => ({
+      src: it.thumb,
+      title: it.title,
+      desc: it.description,
+      eyebrow: `Planetary Archive · ${it.center || 'NASA'}`,
+      meta: { Title: it.title, Source: it.center || 'NASA', Date: it.date || '' },
+      idx,
+    })).filter(it => it.src);
+    galleryState.archiveIndex = Math.min(galleryState.archiveIndex, Math.max(0, galleryState.archive.length - 1));
+
+    // Cinematic Grid
+    const grid = $('#cine-lib-grid');
+    grid.innerHTML = '';
+    $('#cine-lib-count').textContent = items.length ? `${items.length} frames indexed` : '0 frames indexed';
+    if (!items.length) {
+      grid.innerHTML = '<div class="lib-unavail">Archive unavailable for this theme. Try a different topic.</div>';
+    }
+    const shapes = ['wide','tall','sq','big','small','sq','tall','wide','small','big'];
+    items.slice(0, 12).forEach((it, i) => {
+      const card = document.createElement('div');
+      card.className = `card ${shapes[i % shapes.length]}`; card.dataset.clickable = '';
+      card.style.setProperty('--i', i);
+      card.dataset.gallery = 'archive';
+      card.dataset.index = String(i);
+      card.dataset.lb = JSON.stringify({ src: it.thumb, title: it.title, desc: it.description, eyebrow: `Planetary Archive · ${it.center || 'NASA'}`, meta: { Title: it.title, Source: it.center || 'NASA', Date: it.date_created || '' } });
+      card.innerHTML = `<img src="${it.thumb}" loading="lazy"><div class="cap"><div class="title">${escapeHTML(it.title)}</div><div class="idx">#${pad(i+1)}</div></div>`;
+      card.addEventListener('click', () => openGalleryLB('archive', i));
+      grid.appendChild(card);
+    });
+
+    // Control Room mini-rail
+    const rail = $('#mc-lib-rail');
+    rail.innerHTML = '';
+    $('#mc-hits').textContent = items.length;
+    items.slice(0,6).forEach((it, i) => {
+      const el = document.createElement('div');
+      el.className = 'tile'; el.dataset.clickable = '';
+      el.style.setProperty('--i', i);
+      el.dataset.gallery = 'archive';
+      el.dataset.index = String(i);
+      el.dataset.fullIndex = String(items.findIndex(x => x.title === it.title && x.thumb === it.thumb));
+      el.dataset.lb = JSON.stringify({ src: it.thumb, title: it.title, desc: it.description, eyebrow: `Planetary Archive · ${it.center || 'NASA'}`, meta: { Title: it.title, Source: it.center || 'NASA', Date: it.date || '' } });
+      el.innerHTML = `<img src="${it.thumb}" loading="lazy"><div class="stamp">${escapeHTML((it.center||'IMG').slice(0,8))}</div>`;
+      rail.appendChild(el);
+    });
+
+    const prevBtn = $('#archivePrevBtn');
+    const nextBtn = $('#archiveNextBtn');
+    const mcPrevBtn = $('#mcArchivePrevBtn');
+    const mcNextBtn = $('#mcArchiveNextBtn');
+    const i = SEARCH_TOPICS.indexOf(topic);
+    const prevLabel = SEARCH_TOPICS[(i - 1 + SEARCH_TOPICS.length) % SEARCH_TOPICS.length];
+    const nextLabel = SEARCH_TOPICS[(i + 1) % SEARCH_TOPICS.length];
+    if (prevBtn) prevBtn.textContent = `← ${prevLabel}`;
+    if (nextBtn) nextBtn.textContent = `${nextLabel} →`;
+    if (mcPrevBtn) mcPrevBtn.textContent = `← ${prevLabel}`;
+    if (mcNextBtn) mcNextBtn.textContent = `${nextLabel} →`;
+  }
+
+  const fmtKm = km => km >= 1e6 ? `${(km / 1e6).toFixed(2)}M km` : `${Number(km).toLocaleString()} km`;
+  const fmtName = name => String(name || '—').replace(/^\((.*)\)$/, '$1').trim();
+
+  function buildAWSummary(d) {
+    if (!d || d.total === 0) return null;
+    const closest = d.closest;
+    if (!closest) return null;
+    const name = fmtName(closest.name);
+    const ldVal = closest.lunar != null ? parseFloat(closest.lunar) : null;
+    const isHazard = d.hazardous > 0;
+    let distPart = '';
+    if (ldVal !== null) {
+      if (ldVal < 1) {
+        distPart = `inside the Moon's orbit (${ldVal.toFixed(2)} LD)`;
+      } else if (ldVal < 3) {
+        distPart = `${ldVal.toFixed(1)} lunar distances from Earth — a relatively close pass`;
+      } else {
+        distPart = `${ldVal.toFixed(1)} lunar distances from Earth`;
+      }
+    } else if (closest.km) {
+      distPart = `${fmtKm(closest.km)} away`;
+    }
+    let threatPart = isHazard
+      ? `${d.hazardous} object${d.hazardous > 1 ? 's carry' : ' carries'} NASA's "potentially hazardous" classification and ${d.hazardous > 1 ? 'are' : 'is'} tracked closely. No impact is expected.`
+      : `None of the tracked objects posed an impact threat.`;
+    return `${d.total} near-Earth object${d.total !== 1 ? 's' : ''} tracked. The closest, <strong>${escapeHTML(name)}</strong>, passed ${distPart}. ${threatPart}`;
+  }
+
+  function renderAWDiagram(ld, name, isHazard, kmStr) {
+    const svg = $('#aw-diagram');
+    if (!svg) return;
+
+    // ── Canvas geometry ─────────────────────────────────────────────────
+    const W = 900, H = 560;
+    const cx = 450, cy = 290;   // Earth center (slightly below mid for label room)
+    const moonR  = 120;         // 1 LD visual radius (px)
+    const maxVR  = 360;         // 10 LD visual cap (px)
+    const r5     = moonR + (maxVR - moonR) * 4 / 9; // 5 LD ring radius
+
+    const ldNum  = ld  != null ? parseFloat(ld)  : null;
+    const over10 = ldNum != null && ldNum > 10;
+
+    // ── LD → visual radius ───────────────────────────────────────────────
+    // 0–1 LD : linear (inside moon ring)
+    // 1–10 LD: compressed to moonR…maxVR range so inner objects are readable
+    // >10 LD : clamped to maxVR (labelled "beyond 10 LD")
+    let displayR = null;
+    if (ldNum != null) {
+      if      (ldNum <= 0)   displayR = 0;
+      else if (ldNum <= 1)   displayR = moonR * ldNum;
+      else if (ldNum <= 10)  displayR = moonR + (maxVR - moonR) * (ldNum - 1) / 9;
+      else                   displayR = maxVR;
+    }
+
+    // ── Approach geometry ────────────────────────────────────────────────
+    // Asteroid enters from the upper-left, swings by Earth's upper-right,
+    // exits lower-right — a 28° approach angle from the +x axis.
+    const alpha = 28 * Math.PI / 180;
+    const cosA  = Math.cos(alpha);   // ≈ 0.8829
+    const sinA  = Math.sin(alpha);   // ≈ 0.4695
+
+    // Closest approach point (on the radial at angle alpha from Earth)
+    let apx = cx + (displayR ?? moonR) * cosA;
+    let apy = cy - (displayR ?? moonR) * sinA;
+
+    // Trajectory direction: perpendicular to radial at closest approach
+    // Enters from upper-left (−dir), exits lower-right (+dir)
+    const tLen  = 480;
+    const startX = apx - tLen * sinA,  startY = apy - tLen * cosA;
+    const endX   = apx + tLen * sinA,  endY   = apy + tLen * cosA;
+
+    // Bezier control point: pulled toward Earth (simulates gravitational curve)
+    const ctrlX = cx + (apx - cx) * 0.18;
+    const ctrlY = cy + (apy - cy) * 0.18;
+
+    // ── Typographic helpers ──────────────────────────────────────────────
+    const mono  = `'IBM Plex Mono',monospace`;
+    const amber = `rgba(255,180,100,`;
+
+    // Label placement: right of marker unless marker is near right edge
+    const labelRight = apx < W - 150;
+    const labelX     = labelRight ? apx + 20 : apx - 20;
+    const anchor     = labelRight ? 'start' : 'end';
+
+    const ldLabel   = ldNum != null
+      ? (over10 ? `>${ldNum.toFixed(0)} LD` : `${parseFloat(ldNum.toFixed(2))} LD`)
+      : '';
+    const shortName = name   ? escapeHTML(fmtName(name)).slice(0, 26) : '';
+    const kmLabel   = kmStr  ? escapeHTML(kmStr) : '';
+
+    // ── Animation ────────────────────────────────────────────────────────
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const dur     = 14; // seconds per loop
+
+    // Trail: 5 ghost circles, each lag-seconds behind the main dot
+    // begin = -(dur − lag) puts the ghost 'lag' seconds behind main in the loop
+    let trailHtml = '', mainDotHtml = '';
+    if (displayR != null) {
+      if (reduced) {
+        mainDotHtml = `<circle cx="${apx.toFixed(1)}" cy="${apy.toFixed(1)}" r="5.5" fill="${amber}1)"/>`;
+      } else {
+        [
+          [1.6, 0.09, 2.8],
+          [2.1, 0.17, 2.1],
+          [2.6, 0.27, 1.5],
+          [3.1, 0.40, 0.9],
+          [3.7, 0.58, 0.44],
+        ].forEach(([r, op, lag]) => {
+          trailHtml += `<circle r="${r}" fill="${amber}${op})">
+            <animateMotion dur="${dur}s" begin="${(-(dur - lag)).toFixed(2)}s" repeatCount="indefinite" calcMode="linear">
+              <mpath href="#aw-fp"/>
+            </animateMotion>
+          </circle>`;
+        });
+        mainDotHtml = `<circle r="5.5" fill="${amber}1)" filter="url(#awDG)">
+          <animateMotion dur="${dur}s" begin="0s" repeatCount="indefinite" calcMode="linear">
+            <mpath href="#aw-fp"/>
+          </animateMotion>
+        </circle>`;
+      }
+    }
+
+    // ── Star field (30 stars placed for 900×560 balance) ─────────────────
+    const stars = [
+      [38, 28, 1.0, 0.20], [96, 16, 0.9, 0.16], [190, 22, 1.1, 0.18],
+      [314, 14, 0.8, 0.14], [444, 8, 0.9, 0.16], [560, 26, 0.8, 0.13],
+      [646, 18, 1.0, 0.17], [722, 40, 0.7, 0.12], [814, 14, 0.9, 0.15],
+      [876, 56, 0.8, 0.13], [22, 118, 0.7, 0.10], [60, 192, 0.8, 0.12],
+      [136, 342, 0.7, 0.09], [56, 430, 0.9, 0.11], [26, 502, 0.7, 0.10],
+      [110, 542, 0.8, 0.09], [218, 490, 0.7, 0.10], [850, 132, 0.9, 0.13],
+      [878, 224, 0.7, 0.10], [864, 332, 0.8, 0.12], [840, 424, 0.7, 0.09],
+      [800, 514, 0.9, 0.11], [728, 548, 0.8, 0.10], [642, 544, 0.7, 0.09],
+      [530, 554, 0.8, 0.11], [402, 550, 0.7, 0.09], [282, 544, 0.9, 0.12],
+      [170, 528, 0.7, 0.10], [66, 302, 0.6, 0.09], [884, 442, 0.7, 0.08],
+    ].map(([x, y, r, o]) =>
+      `<circle cx="${x}" cy="${y}" r="${r}" fill="rgba(255,255,255,${o})"/>`
+    ).join('');
+
+    // ── Marker block ─────────────────────────────────────────────────────
+    const markerHtml = displayR != null ? `
+      <!-- Dashed radial: Earth → closest approach -->
+      <line x1="${cx}" y1="${cy}" x2="${apx.toFixed(1)}" y2="${apy.toFixed(1)}"
+        stroke="${amber}0.09)" stroke-width="0.8" stroke-dasharray="2,9"/>
+
+      <!-- Diamond marker at closest approach -->
+      <polygon
+        points="${apx.toFixed(1)},${(apy - 9).toFixed(1)} ${(apx + 7).toFixed(1)},${apy.toFixed(1)} ${apx.toFixed(1)},${(apy + 9).toFixed(1)} ${(apx - 7).toFixed(1)},${apy.toFixed(1)}"
+        fill="${amber}0.15)" stroke="${amber}0.80)" stroke-width="1.3"/>
+
+      <!-- LD value — large amber -->
+      <text x="${labelX.toFixed(1)}" y="${(apy - 14).toFixed(1)}" text-anchor="${anchor}"
+        fill="${amber}1)" font-size="16" font-family="${mono}" letter-spacing="0.04em" font-weight="600">${ldLabel}</text>
+
+      ${over10 ? `<text x="${labelX.toFixed(1)}" y="${(apy - 1).toFixed(1)}" text-anchor="${anchor}"
+        fill="rgba(255,255,255,0.30)" font-size="8" font-family="${mono}" letter-spacing="0.06em">beyond 10 LD scale</text>` : ''}
+
+      <!-- Asteroid name -->
+      <text x="${labelX.toFixed(1)}" y="${(apy + (over10 ? 14 : 4)).toFixed(1)}" text-anchor="${anchor}"
+        fill="rgba(255,255,255,0.65)" font-size="10.5" font-family="${mono}">${shortName}</text>
+
+      <!-- km distance -->
+      ${kmLabel ? `<text x="${labelX.toFixed(1)}" y="${(apy + (over10 ? 28 : 18)).toFixed(1)}" text-anchor="${anchor}"
+        fill="rgba(255,255,255,0.32)" font-size="9" font-family="${mono}">${kmLabel}</text>` : ''}
+    ` : `
+      <!-- No-data fallback text -->
+      <text x="${cx}" y="${cy - 54}" text-anchor="middle"
+        fill="rgba(255,255,255,0.09)" font-size="11" font-family="${mono}" letter-spacing="0.22em">ASTEROID TELEMETRY</text>
+      <text x="${cx}" y="${cy - 36}" text-anchor="middle"
+        fill="rgba(255,255,255,0.07)" font-size="11" font-family="${mono}" letter-spacing="0.22em">UNAVAILABLE FOR THIS DATE</text>
+    `;
+
+    // ── Assemble SVG ─────────────────────────────────────────────────────
+    svg.innerHTML = `
+      <defs>
+        ${displayR != null
+          ? `<path id="aw-fp" d="M ${startX.toFixed(1)} ${startY.toFixed(1)} Q ${ctrlX.toFixed(1)} ${ctrlY.toFixed(1)} ${endX.toFixed(1)} ${endY.toFixed(1)}"/>`
+          : ''}
+        <filter id="awDG" x="-300%" y="-300%" width="700%" height="700%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="awEH" x="-200%" y="-200%" width="500%" height="500%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="24"/>
+        </filter>
+        <filter id="awEL" x="-150%" y="-150%" width="400%" height="400%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="9"/>
+        </filter>
+        <radialGradient id="awEG" cx="36%" cy="30%" r="65%">
+          <stop offset="0%"   stop-color="#7ec8ff"/>
+          <stop offset="40%"  stop-color="#1d6ad4"/>
+          <stop offset="100%" stop-color="#071830"/>
+        </radialGradient>
+        <radialGradient id="awBG" cx="50%" cy="50%" r="55%">
+          <stop offset="0%"   stop-color="#060c18" stop-opacity="1"/>
+          <stop offset="100%" stop-color="#000204" stop-opacity="1"/>
+        </radialGradient>
+      </defs>
+
+      <!-- Deep-space background -->
+      <rect x="0" y="0" width="${W}" height="${H}" fill="url(#awBG)"/>
+
+      <!-- Star field -->
+      ${stars}
+
+      <!-- 10 LD reference ring (very faint) -->
+      <circle cx="${cx}" cy="${cy}" r="${maxVR}"
+        stroke="rgba(255,255,255,0.045)" stroke-width="0.6" stroke-dasharray="2,13" fill="none"/>
+      <text x="${cx + maxVR + 9}" y="${cy + 5}"
+        fill="rgba(255,255,255,0.10)" font-size="8" font-family="${mono}" letter-spacing="0.14em">10 LD</text>
+
+      <!-- 5 LD reference ring (very faint) -->
+      <circle cx="${cx}" cy="${cy}" r="${r5.toFixed(1)}"
+        stroke="rgba(255,255,255,0.05)" stroke-width="0.6" stroke-dasharray="2,13" fill="none"/>
+      <text x="${(cx + r5 + 9).toFixed(0)}" y="${cy + 5}"
+        fill="rgba(255,255,255,0.10)" font-size="8" font-family="${mono}" letter-spacing="0.14em">5 LD</text>
+
+      <!-- Moon orbit ring — 1 LD — dashed amber, prominent -->
+      <circle cx="${cx}" cy="${cy}" r="${moonR}"
+        stroke="${amber}0.38)" stroke-width="1.3" stroke-dasharray="5,8" fill="none"/>
+      <text x="${cx + moonR + 11}" y="${cy + 5}"
+        fill="${amber}0.60)" font-size="8" font-family="${mono}" letter-spacing="0.08em">Moon orbit · 1 LD</text>
+
+      <!-- Trajectory: curved bezier (behind Earth) -->
+      ${displayR != null ? `
+        <path d="M ${startX.toFixed(1)} ${startY.toFixed(1)} Q ${ctrlX.toFixed(1)} ${ctrlY.toFixed(1)} ${endX.toFixed(1)} ${endY.toFixed(1)}"
+          stroke="${amber}0.11)" stroke-width="0.9" stroke-dasharray="3,12" fill="none"/>
+      ` : ''}
+
+      <!-- Earth: deep atmospheric halo -->
+      <circle cx="${cx}" cy="${cy}" r="56" fill="rgba(28,88,220,0.16)" filter="url(#awEH)"/>
+      <!-- Earth: inner corona -->
+      <circle cx="${cx}" cy="${cy}" r="40" fill="rgba(60,130,255,0.13)" filter="url(#awEL)"/>
+      <!-- Earth: body -->
+      <circle cx="${cx}" cy="${cy}" r="30" fill="url(#awEG)" stroke="rgba(110,190,255,0.40)" stroke-width="1.5"/>
+      <!-- Earth: specular highlight -->
+      <circle cx="${cx - 9}" cy="${cy - 11}" r="8" fill="rgba(255,255,255,0.07)"/>
+      <!-- Earth: label -->
+      <text x="${cx}" y="${cy + 50}" text-anchor="middle"
+        fill="${amber}0.42)" font-size="8" font-family="${mono}" letter-spacing="0.34em">EARTH</text>
+
+      <!-- Marker, labels, or no-data text -->
+      ${markerHtml}
+
+      <!-- Trail ghosts then main dot (always on top) -->
+      ${trailHtml}
+      ${mainDotHtml}
+    `;
+  }
+
+  function renderAsteroidWatch(d) {
+    const badge = $('#aw-badge');
+    const grid = $('#aw-grid');
+    const hazardNote = $('#aw-hazard-note');
+    const summaryEl = $('#aw-summary');
+
+    if (!d || (!d.total && d.total !== 0)) { renderAsteroidWatchError(); return; }
+
+    if (d.total === 0) {
+      grid.innerHTML = `<div class="aw-cell span2 aw-unavail">No near-Earth objects tracked for this date window.</div>`;
+      badge.textContent = 'CLEAR'; badge.className = 'aw-badge nominal';
+      hazardNote.style.display = 'none';
+      summaryEl.style.display = 'none';
+      renderAWDiagram(null, null, false, null);
+      return;
+    }
+
+    const statusClass = d.status === 'POTENTIALLY HAZARDOUS' ? 'hazardous' : d.status === 'CLOSE APPROACH' ? 'close' : 'nominal';
+    badge.textContent = d.status || 'NOMINAL';
+    badge.className = `aw-badge ${statusClass}`;
+
+    const closest = d.closest;
+    const fastest = d.fastest;
+    const largest = d.largest;
+    const isHazard = d.hazardous > 0;
+
+    const summary = buildAWSummary(d);
+    if (summary) { summaryEl.innerHTML = summary; summaryEl.style.display = ''; }
+    else { summaryEl.style.display = 'none'; }
+
+    renderAWDiagram(closest?.lunar ?? null, closest?.name ?? null, isHazard, closest ? fmtKm(closest.km) : null);
+
+    let closestEnglish = '';
+    if (closest && closest.lunar != null) {
+      const ldVal = parseFloat(closest.lunar);
+      if (!isNaN(ldVal)) closestEnglish = `<div class="aw-v-sub">About ${ldVal.toFixed(1)}x farther than the Moon</div>`;
+    }
+
+    grid.innerHTML = `
+      <div class="aw-cell"><div class="aw-k">Objects Tracked</div><div class="aw-v">${d.total}</div></div>
+      <div class="aw-cell${isHazard ? ' hazard' : ''}"><div class="aw-k">Potentially Hazardous</div><div class="aw-v">${d.hazardous}</div></div>
+      <div class="aw-cell span2"><div class="aw-k">Closest Object</div><div class="aw-v">${escapeHTML(closest ? fmtName(closest.name) : '—')}</div></div>
+      <div class="aw-cell"><div class="aw-k">Miss Distance</div><div class="aw-v">${closest ? fmtKm(closest.km) : '—'}</div></div>
+      <div class="aw-cell"><div class="aw-k">Lunar Distance</div><div class="aw-v">${closest?.lunar != null ? `${closest.lunar} LD` : '—'}${closestEnglish}</div></div>
+      <div class="aw-cell"><div class="aw-k">Fastest Velocity</div><div class="aw-v">${fastest ? `${fastest.km_s} km/s` : '—'}</div></div>
+      <div class="aw-cell"><div class="aw-k">Largest Diameter</div><div class="aw-v">${largest ? `${largest.diameter_km_max} km` : '—'}</div></div>
+    `;
+
+    if (isHazard) {
+      hazardNote.style.display = '';
+      hazardNote.textContent = `"Potentially Hazardous" is a NASA classification for objects larger than roughly 140 m that pass within 0.05 AU of Earth's orbit. It does not mean imminent danger — it means the object's orbit is tracked closely. No impact is expected.`;
+    } else {
+      hazardNote.style.display = 'none';
+    }
+
+    // Control Room panel
+    const crNeoTotal   = $('#cr-neo-total');
+    const crNeoHaz     = $('#cr-neo-haz');
+    const crNeoClosest = $('#cr-neo-closest');
+    const crNeoDist    = $('#cr-neo-dist');
+    const crNeoVel     = $('#cr-neo-vel');
+    const crNeoStatus  = $('#cr-neo-status');
+    if (crNeoTotal)   crNeoTotal.textContent   = d.total;
+    if (crNeoHaz)     crNeoHaz.textContent     = d.hazardous;
+    if (crNeoClosest) crNeoClosest.textContent = closest ? fmtName(closest.name) : '—';
+    if (crNeoDist)    crNeoDist.textContent    = closest ? `${fmtKm(closest.km)} · ${closest.lunar != null ? closest.lunar + ' LD' : '—'}` : '—';
+    if (crNeoVel)     crNeoVel.textContent     = fastest ? `${fastest.km_s} km/s` : '—';
+    if (crNeoStatus) {
+      const isHz = d.status === 'POTENTIALLY HAZARDOUS';
+      crNeoStatus.textContent = d.status || 'NOMINAL';
+      crNeoStatus.className = isHz ? 'cr-pstatus' : 'cr-pstatus cr-ok';
+    }
+  }
+
+  function renderEarthPulse(d) {
+    const globe = $('#ep-globe');
+    const unavail = $('#ep-unavail');
+    const data = $('#ep-data');
+
+    if (!d || d.error || !d.imageUrl) {
+      if (unavail) unavail.style.display = '';
+      if (data) data.style.display = 'none';
+      return;
+    }
+
+    if (unavail) unavail.style.display = 'none';
+    if (data) data.style.display = '';
+
+    // Date — strip seconds for cleanliness
+    const dateStr = d.date ? d.date.replace(/:00$/, '').replace('T', ' ') : '—';
+    const epDate = $('#ep-date');
+    if (epDate) epDate.textContent = dateStr + ' UTC';
+
+    // Centroid
+    const epCentroid = $('#ep-centroid');
+    if (epCentroid) {
+      epCentroid.textContent = d.centroid
+        ? `${d.centroid.lat > 0 ? d.centroid.lat + '°N' : Math.abs(d.centroid.lat) + '°S'}, ${d.centroid.lon > 0 ? d.centroid.lon + '°E' : Math.abs(d.centroid.lon) + '°W'}`
+        : '—';
+    }
+
+    // Caption
+    const epCaption = $('#ep-caption');
+    if (epCaption && d.caption) epCaption.textContent = d.caption;
+
+    // Globe image — fade in on load
+    if (globe) {
+      globe.onload = () => globe.classList.add('loaded');
+      globe.onerror = () => { if (unavail) { unavail.style.display = ''; if (data) data.style.display = 'none'; } };
+      globe.src = d.imageUrl;
+    }
+
+    // Control Room panel
+    const crEpicImg      = $('#cr-epic-img');
+    const crEpicDate     = $('#cr-epic-date');
+    const crEpicCentroid = $('#cr-epic-centroid');
+    const crEpicStatus   = $('#cr-epic-status');
+    if (crEpicImg) {
+      crEpicImg.onload = () => crEpicImg.classList.add('loaded');
+      crEpicImg.src = d.imageUrl;
+    }
+    if (crEpicDate)     crEpicDate.textContent     = dateStr + ' UTC';
+    if (crEpicCentroid) crEpicCentroid.textContent = d.centroid
+      ? `${d.centroid.lat > 0 ? d.centroid.lat + '°N' : Math.abs(d.centroid.lat) + '°S'}, ${d.centroid.lon > 0 ? d.centroid.lon + '°E' : Math.abs(d.centroid.lon) + '°W'}`
+      : '—';
+    if (crEpicStatus) { crEpicStatus.textContent = 'LIVE'; crEpicStatus.className = 'cr-pstatus cr-ok'; }
+  }
+
+  function renderEarthPulse_error() {
+    const unavail = $('#ep-unavail');
+    const data = $('#ep-data');
+    if (unavail) unavail.style.display = '';
+    if (data) data.style.display = 'none';
+  }
+
+  /* ======================= MISSION BRIEF CARD / EXHIBITION SNAPSHOT ======================= */
+
+  function renderMissionBriefCard() {
+    const apod      = state.data.apod;
+    const asteroid  = state.data.asteroid;
+    const epic      = state.data.epic;
+    const library   = state.data.library;
+    const dateStr   = fmtDate(state.date);
+    const topic     = state.currentTopic || 'NASA Archive';
+
+    // Header date
+    const mbcDate = $('#mbc-date');
+    if (mbcDate) mbcDate.textContent = dateStr;
+
+    // Visual hero: the day's image + title
+    const heroImg = apod ? (apod.media_type === 'video' ? apod.thumbnail_url : (apod.hdurl || apod.url)) : null;
+    const heroEl = $('#mbc-hero'); if (heroEl) setBG(heroEl, heroImg);
+    const heroTitleEl = $('#mbc-hero-title'); if (heroTitleEl) heroTitleEl.textContent = apod?.title || 'The universe on this date';
+
+    // — Cosmos Signal —
+    const apodTitle = apod?.title || 'Telemetry unavailable';
+    const apodDate  = apod?.date  || dateStr;
+    const el_apodTitle = $('#mbc-apod-title');
+    const el_apodDate  = $('#mbc-apod-date');
+    if (el_apodTitle) el_apodTitle.textContent = apodTitle;
+    if (el_apodDate)  el_apodDate.textContent  = `NASA APOD · ${apodDate}`;
+
+    // — Asteroid Watch —
+    let asteroidVal = 'Telemetry unavailable';
+    let asteroidSub = 'NeoWs · Near-Earth Objects';
+    if (asteroid && typeof asteroid.total === 'number') {
+      asteroidVal = `${asteroid.total} objects tracked`;
+      if (asteroid.closest) {
+        const name = fmtName(asteroid.closest.name);
+        const km   = Number(asteroid.closest.km).toLocaleString();
+        const ld   = asteroid.closest.lunar != null ? `${asteroid.closest.lunar} LD` : '';
+        asteroidSub = `Closest: ${name} · ${km} km${ld ? ' / ' + ld : ''} · ${asteroid.hazardous} potentially hazardous`;
+      }
+    }
+    const el_astVal = $('#mbc-asteroid-val');
+    const el_astSub = $('#mbc-asteroid-sub');
+    if (el_astVal) el_astVal.textContent = asteroidVal;
+    if (el_astSub) el_astSub.textContent = asteroidSub;
+
+    // — Earth Pulse —
+    let epicVal = 'Telemetry unavailable';
+    if (epic && epic.date) {
+      const d = epic.date.split(' ')[0];
+      epicVal = `Full-disk capture · ${d}`;
+    }
+    const el_epicVal = $('#mbc-epic-val');
+    if (el_epicVal) el_epicVal.textContent = epicVal;
+
+    // — Planetary Archive —
+    const topTitle = library?.[0]?.title || null;
+    const libVal   = topTitle ? truncate(topTitle, 72) : `Theme: ${topic}`;
+    const libSub   = `Archive theme: ${topic} · NASA Image Library`;
+    const el_libVal = $('#mbc-lib-val');
+    const el_libSub = $('#mbc-lib-sub');
+    if (el_libVal) el_libVal.textContent = libVal;
+    if (el_libSub) el_libSub.textContent = libSub;
+
+    // — Control Room panel (Exhibition Snapshot) — must update here so CR never shows stale dashes
+    const crMbcApod = $('#cr-mbc-apod');
+    const crMbcNeo  = $('#cr-mbc-neo');
+    const crMbcEpic = $('#cr-mbc-epic');
+    const crMbcLib  = $('#cr-mbc-lib');
+    if (crMbcApod) crMbcApod.textContent = apodTitle;
+    if (crMbcNeo)  crMbcNeo.textContent  = asteroidVal;
+    if (crMbcEpic) crMbcEpic.textContent = epicVal;
+    if (crMbcLib)  crMbcLib.textContent  = `${topic} · ${(library || []).length} frames`;
+
+    // Share + copy actions
+    const shareUrl = location.origin + location.pathname + '?d=' + dateStr;
+    const summaryBtn = $('#mbcCopySummaryBtn');
+    if (summaryBtn) summaryBtn.onclick = () => copyToClipboard(buildBriefText().brief, summaryBtn);
+    const liBtn = $('#mbcShareLinkedIn');
+    if (liBtn) liBtn.onclick = () => window.open('https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(shareUrl), '_blank', 'noopener');
+    const linkBtn = $('#mbcCopyLink');
+    if (linkBtn) linkBtn.onclick = () => copyToClipboard(shareUrl, linkBtn);
+  }
+
+  function buildBriefText() {
+    const apod     = state.data.apod;
+    const asteroid = state.data.asteroid;
+    const epic     = state.data.epic;
+    const dateStr  = fmtDate(state.date);
+    const topic    = state.currentTopic || 'NASA Archive';
+
+    const cosmosLine = apod?.title
+      ? apod.title
+      : 'Telemetry unavailable';
+
+    let asteroidLine = 'Telemetry unavailable';
+    if (asteroid && typeof asteroid.total === 'number') {
+      asteroidLine = `${asteroid.total} objects tracked`;
+      if (asteroid.closest) {
+        const name = fmtName(asteroid.closest.name);
+        const km   = Number(asteroid.closest.km).toLocaleString();
+        const ld   = asteroid.closest.lunar != null ? ` (${asteroid.closest.lunar} LD)` : '';
+        asteroidLine += ` · closest: ${name} at ${km} km${ld}`;
+        if (asteroid.hazardous > 0) asteroidLine += ` · ${asteroid.hazardous} potentially hazardous`;
+      }
+    }
+
+    const epicLine = epic?.date
+      ? `Full-disk capture ${epic.date.split(' ')[0]}`
+      : 'Telemetry unavailable';
+
+    const libLine = state.data.library?.[0]?.title
+      ? truncate(state.data.library[0].title, 72)
+      : `Theme: ${topic}`;
+
+    return {
+      brief:
+`FAROUT · Exhibition Snapshot · ${dateStr}
+
+FAROUT turns one NASA date into a guided exhibition across four rooms: a daily image, a seven-day signal trail, an archive theme, and live space telemetry.
+
+✦ Cosmos Signal: ${cosmosLine}
+◎ Asteroid Watch: ${asteroidLine}
+◈ Earth Pulse: ${epicLine}
+⬡ Planetary Archive: ${libLine}
+`
+    };
+  }
+
+  function copyToClipboard(text, btn) {
+    function showCopied() {
+      const copied = $('#mbcCopied');
+      if (copied) {
+        copied.classList.remove('show');
+        copied.offsetHeight; // force reflow so animation restarts
+        copied.classList.add('show');
+        clearTimeout(copyToClipboard._t);
+        copyToClipboard._t = setTimeout(() => copied.classList.remove('show'), 2800);
+      }
+      if (btn) {
+        btn.classList.remove('copied');
+        btn.offsetWidth; // force reflow
+        btn.classList.add('copied');
+      }
+    }
+    navigator.clipboard.writeText(text).then(showCopied).catch(() => {
+      // fallback for non-HTTPS contexts
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+      document.body.removeChild(ta);
+      showCopied();
+    });
+  }
+
+  /* ======================= PRESENTATION TOUR ======================= */
+  const TOUR_SECTIONS = [
+    { sel: '#cine-apod',         label: 'Opening Piece — Cosmos Signal',  caption: 'NASA publishes something extraordinary every day.', ms: 8000 },
+    { sel: '.briefing-overview', label: 'Exhibition Route',               caption: 'FAROUT turns one date into a guided space exhibition.', ms: 6000 },
+    { sel: '#cine-gallery',      label: 'The 7 Signals',                  caption: 'Seven daily images lead into the selected date.', ms: 6000 },
+    { sel: '#cine-lib',          label: 'Room 02 — Planetary Archive',    caption: 'The archive room re-curates NASA mission imagery by theme.', ms: 6000 },
+    { sel: '#asteroid-watch',    label: 'Room 03 — Asteroid Watch',       caption: 'Asteroid Watch turns near-Earth object data into a readable pass.', ms: 6000 },
+    { sel: '#earth-pulse',       label: 'Room 04 — Earth Pulse',          caption: 'Earth Pulse shows the view back home from deep space.', ms: 6000 },
+    { sel: '#mbc-section',       label: 'Exhibition Snapshot',            caption: 'All four rooms compiled: signal, asteroids, Earth pulse, and archive.', ms: 6000 },
+    { sel: '#build-log',         label: 'Build Log',                      caption: 'Built with Replit Agent from visual concept to working app.', ms: 6000 },
+  ];
+  const TOUR_SCROLL_MS = 900;
+  const tourState = { active: false, paused: false, finished: false, index: 0, autoTimer: null, scrollTimer: null, highlightTimer: null };
+
+  function setActiveView(name) {
+    const viewName = name === 'mission' ? 'mission' : 'cinematic';
+    $$('.layout-tabs button').forEach(b => b.classList.toggle('active', b.dataset.view === viewName));
+    $$('.view').forEach(v => v.classList.toggle('active', v.dataset.viewName === viewName));
+    document.body.dataset.view = viewName;
+    if (viewName === 'mission') {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+  }
+
+  function applyTourHighlight(sel) {
+    $$('.tour-highlight-active').forEach(el => el.classList.remove('tour-highlight-active'));
+    clearTimeout(tourState.highlightTimer);
+    if (!sel) return;
+    const el = document.querySelector(sel);
+    if (el) {
+      el.classList.add('tour-highlight-active');
+      tourState.highlightTimer = setTimeout(() => el.classList.remove('tour-highlight-active'), 2400);
+    }
+  }
+
+  function setTourTarget(index, smooth = true) {
+    tourState.index = Math.max(0, Math.min(TOUR_SECTIONS.length - 1, index));
+    tourState.finished = false;
+    const s = TOUR_SECTIONS[tourState.index];
+    const target = document.querySelector(s.sel);
+    if (!target) return;
+    target.scrollIntoView({ behavior: smooth ? 'smooth' : 'instant', block: 'start' });
+    clearTimeout(tourState.scrollTimer);
+    tourState.scrollTimer = setTimeout(() => {
+      applyTourHighlight(s.sel);
+      renderTourPanel();
+      scheduleTourAdvance();
+    }, smooth ? TOUR_SCROLL_MS : 80);
+    renderTourPanel();
+  }
+
+  function renderTourPanel() {
+    const wrap = $('#presenterTour');
+    const label = $('#presenterLabel');
+    const counter = $('#presenterCounter');
+    const caption = $('#presenterCaption');
+    const status = $('#presenterStatus');
+    const pauseBtn = $('#presenterPauseBtn');
+    const s = TOUR_SECTIONS[tourState.index];
+    if (label) label.textContent = s.label;
+    if (counter) counter.textContent = `${tourState.index + 1} of ${TOUR_SECTIONS.length}`;
+    if (caption) caption.textContent = tourState.finished ? 'End of presentation.' : s.caption;
+    if (status) status.textContent = tourState.finished ? 'Finished' : (tourState.paused ? 'Paused' : 'Playing');
+    if (pauseBtn) pauseBtn.textContent = tourState.paused ? 'Resume' : 'Pause';
+    if (wrap) {
+      wrap.classList.toggle('active', tourState.active);
+      wrap.classList.toggle('paused', tourState.paused || tourState.finished);
+    }
+    $('#demoBtn')?.classList.toggle('active', tourState.active);
+  }
+
+  function scheduleTourAdvance() {
+    if (!tourState.active || tourState.paused || tourState.finished) return;
+    clearTimeout(tourState.autoTimer);
+    const ms = TOUR_SECTIONS[tourState.index].ms;
+    tourState.autoTimer = setTimeout(() => {
+      if (!tourState.active || tourState.paused || tourState.finished) return;
+      if (tourState.index >= TOUR_SECTIONS.length - 1) {
+        tourState.finished = true;
+        renderTourPanel();
+        return;
+      }
+      setTourTarget(tourState.index + 1, true);
+    }, ms);
+  }
+
+  function startTour() {
+    if (document.body.dataset.view === 'mission') setActiveView('cinematic');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    tourState.active = true;
+    tourState.paused = false;
+    tourState.finished = false;
+    tourState.index = 0;
+    if (tourState.autoTimer) { clearTimeout(tourState.autoTimer); tourState.autoTimer = null; }
+    if (tourState.scrollTimer) { clearTimeout(tourState.scrollTimer); tourState.scrollTimer = null; }
+    renderTourPanel();
+    setTourTarget(0, false);
+  }
+
+  function stopTour() {
+    tourState.active = false;
+    tourState.paused = false;
+    tourState.finished = false;
+    if (tourState.autoTimer) { clearTimeout(tourState.autoTimer); tourState.autoTimer = null; }
+    if (tourState.scrollTimer) { clearTimeout(tourState.scrollTimer); tourState.scrollTimer = null; }
+    if (tourState.highlightTimer) { clearTimeout(tourState.highlightTimer); tourState.highlightTimer = null; }
+    $$('.tour-highlight-active').forEach(el => el.classList.remove('tour-highlight-active'));
+    $('#demoBtn')?.classList.remove('active');
+    $('#presenterTour')?.classList.remove('active', 'paused');
+  }
+
+  function stepTour(delta) {
+    if (!tourState.active) return;
+    const next = tourState.index + delta;
+    if (next < 0 || next >= TOUR_SECTIONS.length) return;
+    clearTimeout(tourState.autoTimer);
+    tourState.finished = false;
+    setTourTarget(next, true);
+  }
+
+  function toggleTourPause() {
+    if (!tourState.active) return;
+    if (tourState.finished) { stopTour(); return; }
+    tourState.paused = !tourState.paused;
+    renderTourPanel();
+    if (tourState.paused) {
+      if (tourState.autoTimer) { clearTimeout(tourState.autoTimer); tourState.autoTimer = null; }
+    } else {
+      scheduleTourAdvance();
+    }
+  }
+
+  $('#presenterPrevBtn')?.addEventListener('click', () => stepTour(-1));
+  $('#presenterPauseBtn')?.addEventListener('click', () => toggleTourPause());
+  $('#presenterNextBtn')?.addEventListener('click', () => stepTour(1));
+  $('#presenterExitBtn')?.addEventListener('click', () => stopTour());
+  $('#demoBtn')?.addEventListener('click', () => { if (tourState.active) stopTour(); else startTour(); });
+  document.addEventListener('keydown', (e) => {
+    if (!tourState.active) return;
+    if (e.key === 'Escape') { e.preventDefault(); stopTour(); return; }
+    if (e.key === ' ' || e.code === 'Space') { e.preventDefault(); toggleTourPause(); return; }
+    if (e.key === 'ArrowRight') { e.preventDefault(); stepTour(1); return; }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); stepTour(-1); return; }
+  });
+
+  $$('.layout-tabs button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (tourState.active) stopTour();
+      const name = btn.dataset.view === 'mission' ? 'mission' : 'cinematic';
+      setActiveView(name);
+      localStorage.setItem(LS_VIEW, name);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
+
+  function renderAsteroidWatchError() {
+    const badge = $('#aw-badge');
+    $('#aw-grid').innerHTML = `<div class="aw-cell" style="grid-column:1/-1"><div class="aw-unavail">Asteroid telemetry unavailable — NeoWs unreachable</div></div>`;
+    badge.textContent = '—'; badge.className = 'aw-badge';
+    $('#aw-hazard-note').style.display = 'none';
+    const s = $('#aw-summary'); if (s) s.style.display = 'none';
+    renderAWDiagram(null, null, false, null);
+  }
+
+  function kv(k, v) { return v ? `<div><span class="k">${escapeHTML(k)}</span><span class="v">${escapeHTML(v)}</span></div>` : ''; }
+  function truncate(s, n) { s = String(s || ''); return s.length <= n ? s : s.slice(0, n).trimEnd() + '…'; }
+  function htmlizeTitle(title) {
+    const w = (title || '—').split(/\s+/);
+    if (w.length < 3) return escapeHTML(title);
+    const take = Math.min(2, Math.max(1, Math.floor(w.length / 3)));
+    return `${escapeHTML(w.slice(0, w.length - take).join(' '))} <em>${escapeHTML(w.slice(w.length - take).join(' '))}</em>`;
+  }
+
+  function openLB(payload) {
+    try {
+      const d = typeof payload === 'string' ? JSON.parse(payload) : payload;
+
+      // New img element each time, so CSS lbImgIn animation always fires fresh
+      $('#lbImg').innerHTML = `<img src="${secureUrl(d.src)}" alt="${escapeHTML(d.title || '')}">`;
+      $('#lbEyebrow').textContent = d.eyebrow || '';
+      $('#lbTitle').textContent   = d.title   || '';
+      const cleanedDesc = sanitizeDesc(d.desc || '');
+      $('#lbDesc').innerHTML = cleanedDesc;
+      $('#lbMeta').innerHTML = Object.entries(d.meta || {}).map(([k, v]) => kv(k, v)).join('');
+
+      // Reset meta panel animation so it re-fires on every open
+      const panel = $('#lbMetaPanel');
+      if (panel) {
+        panel.style.animation = 'none';
+        panel.offsetHeight; // force reflow
+        panel.style.animation = '';
+        panel.scrollTop = 0;
+      }
+
+      $('#lightbox').classList.add('open');
+      document.body.style.overflow = 'hidden';
+      updateLightboxNav();
+    } catch (e) {}
+  }
+  function closeLB() {
+    $('#lightbox').classList.remove('open');
+    document.body.style.overflow = '';
+    galleryState.active = null;
+  }
+
+  function updateLightboxNav() {
+    const btnPrev = $('#lbPrev');
+    const btnNext = $('#lbNext');
+    const pos = $('#lbPosition');
+    const active = galleryState.active;
+    const list = active === 'archive' ? galleryState.archive : active === 'recent' ? galleryState.recent : [];
+    const idx = active === 'archive' ? galleryState.archiveIndex : galleryState.recentIndex;
+    const total = list.length;
+    if (pos) pos.textContent = total ? `${idx + 1} of ${total}` : '—';
+    if (btnPrev) btnPrev.disabled = !total || idx <= 0;
+    if (btnNext) btnNext.disabled = !total || idx >= total - 1;
+  }
+
+  function stepLightbox(delta) {
+    const active = galleryState.active;
+    if (!active) return;
+    const list = active === 'archive' ? galleryState.archive : galleryState.recent;
+    const current = active === 'archive' ? galleryState.archiveIndex : galleryState.recentIndex;
+    const next = current + delta;
+    if (next < 0 || next >= list.length) return;
+    if (active === 'archive') galleryState.archiveIndex = next;
+    if (active === 'recent') galleryState.recentIndex = next;
+    openLB(JSON.stringify(list[next]));
+    updateLightboxNav();
+    setGalleryActive(active, next);
+  }
+  
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-lb]');
+    if (t) {
+      e.preventDefault();
+      const scope = t.dataset.gallery;
+      const idx = Number(t.dataset.fullIndex || t.dataset.index || 0);
+      if (scope === 'recent' || scope === 'archive') {
+        openGalleryLB(scope, idx);
+      } else {
+        openLB(t.dataset.lb);
+      }
+    }
+  });
+  $('#lbClose')?.addEventListener('click', closeLB);
+  $('#lbPrev')?.addEventListener('click', () => stepLightbox(-1));
+  $('#lbNext')?.addEventListener('click', () => stepLightbox(1));
+  $('#lightbox')?.addEventListener('click', (e) => { if (e.target.id === 'lightbox') closeLB(); });
+  $$('#lightbox .lb-edge').forEach(edge => edge.addEventListener('click', (e) => {
+    e.stopPropagation();
+    stepLightbox(Number(edge.dataset.lbStep || 0));
+  }));
+  document.addEventListener('keydown', (e) => {
+    const inInput = document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName);
+    if (e.key === 'Escape') { if ($('#lightbox')?.classList.contains('open')) closeLB(); return; }
+    if (inInput) return;
+    if (!$('#lightbox')?.classList.contains('open')) return;
+    if (e.key === 'ArrowLeft') { e.preventDefault(); stepLightbox(-1); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); stepLightbox(1); }
+  });
+
+  const keyPanel = $('#keypanel');
+  $('#keyBtn').addEventListener('click', () => { keyPanel.classList.add('open'); });
+  $('#keyClose').addEventListener('click', () => { keyPanel.classList.remove('open'); });
+  keyPanel.addEventListener('click', (e) => { if (e.target === keyPanel) keyPanel.classList.remove('open'); });
+
+  const datePick = $('#datePick');
+  datePick.addEventListener('change', () => {
+    const v = datePick.value; if (!v) return;
+    const [y, m, dd] = v.split('-').map(Number);
+    let d = new Date(Date.UTC(y, m - 1, dd));
+    if (isNaN(d)) return;
+    const now = new Date();
+    if (dateHelper) dateHelper.textContent = 'Loading a new exhibition for this date…';
+    if (loading) {
+      loading.textContent = `Retrieving exhibition for ${fmtDate(d)}…`;
+      loading.classList.remove('hidden');
+    }
+    if (d < APOD_MIN) {
+      d = APOD_MIN;
+      datePick.value = APOD_MIN_STR;
+      if (dateHelper) dateHelper.textContent = 'The archive begins on June 16, 1995.';
+      showError('That date is outside the archive. Showing the earliest available exhibition.');
+    } else if (d > now) {
+      d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+      datePick.value = fmtDate(d);
+      if (dateHelper) dateHelper.textContent = 'Future dates are not available yet.';
+      showError('That date is not available yet. Showing the most recent exhibition.');
+    } else if (dateHelper) {
+      const todayStr2 = fmtDate(new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate())));
+      dateHelper.textContent = fmtDate(d) === todayStr2 ? "Today's NASA exhibition is loading…" : `Loading exhibition for ${fmtDate(d)}…`;
+    }
+    state.date = d; localStorage.setItem(LS_DATE, fmtDate(d)); loadAll();
+  });
+
+  // ROOM NAVIGATION — Exhibition route cards scroll to their sections
+  function scrollToRoom(targetId) {
+    const target = document.querySelector(targetId);
+    if (!target) return;
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(() => {
+      target.classList.add('section-highlight');
+      setTimeout(() => target.classList.remove('section-highlight'), 1400);
+    }, 650);
+  }
+  $$('.bo-card[data-target]').forEach(card => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.bc-enter') || e.currentTarget === card) {
+        scrollToRoom(card.dataset.target);
+      }
+    });
+  });
+
+  // CONTROL ROOM PANEL NAVIGATION — clicking any [data-target] panel switches to Cinematic and scrolls there
+  $$('.cr-panel[data-target]').forEach(panel => {
+    panel.addEventListener('click', (e) => {
+      // If a thumbnail tile was clicked, let the global data-lb handler open the lightbox instead
+      if (e.target.closest('[data-lb]')) return;
+      // If a nav button (archive prev/next) was clicked, don't navigate
+      if (e.target.closest('button')) return;
+      const target = panel.dataset.target;
+      if (!target) return;
+      if (tourState.active) stopTour();
+      setActiveView('cinematic');
+      setTimeout(() => scrollToRoom(target), 80);
+    });
+  });
+
+  // BUILD LOG BUTTON — switch to Cinematic and scroll to build log
+  $('#crBuildLogBtn')?.addEventListener('click', () => {
+    if (tourState.active) stopTour();
+    setActiveView('cinematic');
+    setTimeout(() => scrollToRoom('#build-log'), 80);
+  });
+
+  const archiveToast = $('#archiveToast');
+  let archiveToastTimer = null;
+  let archiveFlashTimer = null;
+
+  function showArchiveToast(message = 'Archive updated') {
+    if (!archiveToast) return;
+    archiveToast.textContent = message;
+    archiveToast.classList.remove('hidden');
+    archiveToast.classList.add('show');
+    clearTimeout(archiveToastTimer);
+    archiveToastTimer = setTimeout(() => {
+      archiveToast.classList.remove('show');
+      archiveToastTimer = setTimeout(() => archiveToast.classList.add('hidden'), 240);
+    }, 1800);
+  }
+
+  function flashArchiveSection() {
+    const section = $('#cine-lib');
+    if (!section) return;
+    section.classList.remove('flash');
+    section.classList.add('archive-room-flash');
+    section.offsetHeight;
+    section.classList.add('flash');
+    clearTimeout(archiveFlashTimer);
+    archiveFlashTimer = setTimeout(() => {
+      section.classList.remove('flash');
+      section.classList.remove('archive-room-flash');
+    }, 1100);
+  }
+
+  // NEW ARCHIVE TOPIC
+  $('#warpBtn')?.addEventListener('click', async () => {
+    state.currentTopic = SEARCH_TOPICS[Math.floor(Math.random() * SEARCH_TOPICS.length)];
+    await loadLibraryOnly();
+    flashArchiveSection();
+    document.querySelector('#cine-lib')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    showArchiveToast('New archive room loaded.');
+  });
+
+  function maybePlayIntro() {
+    const intro = $('#intro');
+    $('#skipIntro').addEventListener('click', () => {
+      // Keep ambience off by default on skip — user can enable via button
+      intro.classList.add('gone');
+    });
+  }
+
+  function bindInteractiveReticle() {
+    const r = $('#reticle'), coord = $('#coord'), pWrap = $('#parallax-wrapper');
+    if (!r) return;
+    let x = window.innerWidth / 2, y = window.innerHeight / 2, tx = x, ty = y;
+    
+    document.addEventListener('mousemove', (e) => {
+      tx = e.clientX; ty = e.clientY;
+      const lat = ((ty / window.innerHeight) * 180 - 90).toFixed(1);
+      const lon = ((tx / window.innerWidth) * 360 - 180).toFixed(1);
+      coord.textContent = `${lat}° / ${lon}°`;
+
+      // 3D Parallax effect on hero background
+      if(document.body.dataset.view === 'cinematic' && window.scrollY < window.innerHeight) {
+        const xOffset = ((tx / window.innerWidth) - 0.5) * -20;
+        const yOffset = ((ty / window.innerHeight) - 0.5) * -20;
+        if(pWrap) pWrap.style.transform = `translate(${xOffset}px, ${yOffset}px)`;
+      }
+    });
+
+    (function tick() { x += (tx - x) * 0.25; y += (ty - y) * 0.25; r.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`; requestAnimationFrame(tick); })();
+    document.addEventListener('mouseover', (e) => { r.classList.toggle('hover', !!e.target.closest('button, [data-clickable], [data-lb], a, input')); });
+  }
+
+  async function loadLibraryOnly() {
+    const loading = $('#loading');
+    const grid    = $('#cine-lib-grid');
+    const rail    = $('#mc-lib-rail');
+
+    // Fade existing content out
+    if (grid) grid.classList.add('refreshing');
+    if (rail) rail.classList.add('refreshing');
+    loading.textContent = `New room: ${state.currentTopic}…`;
+    loading.classList.remove('hidden');
+
+    // Let the fade complete before replacing DOM
+    await new Promise(r => setTimeout(r, 280));
+
+    const lib = await API.library(state.currentTopic, state.date).catch(() => null);
+    if (!lib) {
+      if (grid) grid.classList.remove('refreshing');
+      if (rail) rail.classList.remove('refreshing');
+      loading.classList.add('hidden');
+      return false;
+    }
+    state.data.library = lib;
+    renderLibrary(lib);
+
+    // Fade new content in (CSS animation handles per-card stagger)
+    if (grid) grid.classList.remove('refreshing');
+    if (rail) rail.classList.remove('refreshing');
+    setTimeout(() => { loading.classList.add('hidden'); }, 300);
+    return true;
+  }
+
+  function cycleArchive(delta) {
+    const i = SEARCH_TOPICS.indexOf(state.currentTopic);
+    state.currentTopic = SEARCH_TOPICS[(i + delta + SEARCH_TOPICS.length) % SEARCH_TOPICS.length];
+    loadLibraryOnly().then(() => {
+      flashArchiveSection();
+      showArchiveToast();
+    });
+  }
+
+  async function loadAll() {
+    if (loading) {
+      loading.textContent = `Retrieving exhibition for ${fmtDate(state.date)}…`;
+      loading.classList.remove('hidden');
+    }
+    const d = state.date;
+    try { history.replaceState(null, '', location.pathname + '?d=' + fmtDate(d)); } catch {}
+    const settle = (p) => p.then(v => ({ ok: true, v })).catch(e => ({ ok: false, e }));
+    
+    const [apodR, timelineR, libR, neoR, epicR] = await Promise.all([
+      settle(API.apod(d)),
+      settle(API.apodRange(d, 7)),
+      settle(API.library(state.currentTopic, d)),
+      settle(API.asteroids(d)),
+      settle(API.epic()),
+    ]);
+
+    if (apodR.ok) { state.data.apod = apodR.v; renderPrimaryAPOD(apodR.v); }
+    else {
+      renderPrimaryAPOD({ title: 'Signal Unavailable', explanation: 'Unable to retrieve the cosmos signal for this date.', date: fmtDate(d) });
+      showError('Cosmos Signal unavailable for this date.');
+    }
+
+    if (timelineR.ok) { state.data.recentApods = timelineR.v; renderRecentAPODs(timelineR.v); } else { renderRecentAPODs([]); }
+    if (libR.ok) { state.data.library = libR.v; renderLibrary(libR.v); } else { renderLibrary([]); }
+    if (neoR.ok) { state.data.asteroid = neoR.v; renderAsteroidWatch(neoR.v); } else { renderAsteroidWatchError(); }
+    if (epicR.ok) { state.data.epic = epicR.v; renderEarthPulse(epicR.v); } else { renderEarthPulse_error(); }
+    const todayStr = fmtDate(new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate())));
+    const isToday = fmtDate(d) === todayStr;
+    if (dateHelper) dateHelper.textContent = isToday ? "You're viewing today's NASA exhibition." : `Viewing the ${fmtDate(d)} exhibition. Choose a date to explore another.`;
+    // Update Today button highlight
+    $('#dayTodayBtn')?.classList.toggle('is-today', isToday);
+    // Update Next button — disable if already on today
+    const dayNextBtn = $('#dayNextBtn');
+    if (dayNextBtn) dayNextBtn.disabled = isToday;
+    // Update Prev button — disable if on archive start
+    const dayPrevBtn = $('#dayPrevBtn');
+    if (dayPrevBtn) dayPrevBtn.disabled = fmtDate(d) === APOD_MIN_STR;
+
+    renderMissionBriefCard();
+
+    setTimeout(() => { if (loading) loading.classList.add('hidden'); }, 400);
+  }
+
+  function init() {
+    const urlDate = new URLSearchParams(location.search).get('d');
+    const stored = (urlDate && /^\d{4}-\d{2}-\d{2}$/.test(urlDate)) ? urlDate : localStorage.getItem(LS_DATE); let d;
+    if (stored) { const [y, m, dd] = stored.split('-').map(Number); d = new Date(Date.UTC(y, m - 1, dd)); }
+    else { d = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate())); }
+    if (!(d instanceof Date) || isNaN(d)) d = new Date();
+    
+    const todayUTC = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate()));
+    if (d < APOD_MIN) d = new Date(APOD_MIN);
+    if (d > todayUTC) d = todayUTC;
+    state.date = d; datePick.value = fmtDate(d); datePick.max = fmtDate(todayUTC); datePick.min = APOD_MIN_STR;
+    // Single view now (Control Room retired) — always show the cinematic journey.
+    document.body.dataset.view = 'cinematic';
+
+    $('#archivePrevBtn')?.addEventListener('click', () => cycleArchive(-1));
+    $('#archiveNextBtn')?.addEventListener('click', () => cycleArchive(1));
+    $('#mcArchivePrevBtn')?.addEventListener('click', () => cycleArchive(-1));
+    $('#mcArchiveNextBtn')?.addEventListener('click', () => cycleArchive(1));
+    document.addEventListener('keydown', (e) => {
+      if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+      // Don't cycle the archive while the lightbox or the guided tour owns the arrow keys.
+      if (tourState.active) return;
+      if ($('#lightbox')?.classList.contains('open')) return;
+      if (e.key === 'ArrowLeft') cycleArchive(-1);
+      if (e.key === 'ArrowRight') cycleArchive(1);
+      if (e.key === 'Escape') document.querySelector('#cine-lib')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    // DAY NAVIGATION BUTTONS
+    function navigateDay(deltaDays) {
+      const d = new Date(state.date.getTime());
+      d.setUTCDate(d.getUTCDate() + deltaDays);
+      const todayUTC = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate()));
+      if (d < APOD_MIN) return;
+      if (d > todayUTC) return;
+      state.date = d;
+      datePick.value = fmtDate(d);
+      localStorage.setItem(LS_DATE, fmtDate(d));
+      if (dateHelper) {
+        const isToday = fmtDate(d) === fmtDate(todayUTC);
+        dateHelper.textContent = isToday ? "Today's NASA exhibition is loading…" : `Loading exhibition for ${fmtDate(d)}…`;
+      }
+      if (loading) { loading.textContent = `Retrieving exhibition for ${fmtDate(d)}…`; loading.classList.remove('hidden'); }
+      loadAll();
+    }
+
+    function jumpToToday() {
+      const todayUTC = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate()));
+      if (fmtDate(state.date) === fmtDate(todayUTC)) return;
+      state.date = todayUTC;
+      datePick.value = fmtDate(todayUTC);
+      localStorage.setItem(LS_DATE, fmtDate(todayUTC));
+      if (dateHelper) dateHelper.textContent = "Today's NASA exhibition is loading…";
+      if (loading) { loading.textContent = `Retrieving today's exhibition…`; loading.classList.remove('hidden'); }
+      loadAll();
+    }
+
+    $('#dayPrevBtn')?.addEventListener('click', () => navigateDay(-1));
+    $('#dayNextBtn')?.addEventListener('click', () => navigateDay(1));
+    $('#dayTodayBtn')?.addEventListener('click', jumpToToday);
+
+    maybePlayIntro(); bindInteractiveReticle(); loadAll();
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+})();
+</script>
+</body>
+</html>
