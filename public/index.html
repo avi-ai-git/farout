@@ -4,6 +4,15 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>FAROUT — The sky on any date that matters</title>
+<meta name="description" content="NASA's open data, turned into a daily cinematic mission briefing." />
+<meta name="theme-color" content="#000000" />
+<meta name="color-scheme" content="dark" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="FAROUT" />
+<link rel="manifest" href="/manifest.json" />
+<link rel="icon" type="image/svg+xml" href="/icon.svg" />
+<link rel="apple-touch-icon" href="/icon.svg" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,700;0,9..144,900;1,9..144,300;1,9..144,400&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -3192,8 +3201,10 @@
         };
       }).filter(x => x.thumb);
     },
-    async epic() {
-      return safeFetch(new URL('/api/epic', location.origin));
+    async epic(date) {
+      const u = new URL('/api/epic', location.origin);
+      if (date) u.searchParams.set('date', fmtDate(date));
+      return safeFetch(u);
     }
   };
 
@@ -3712,9 +3723,19 @@
         : '—';
     }
 
-    // Caption
+    // Caption — NASA's text, plus a small note when we walked back to the nearest available capture.
     const epCaption = $('#ep-caption');
-    if (epCaption && d.caption) epCaption.textContent = d.caption;
+    if (epCaption) {
+      const parts = [];
+      if (d.caption) parts.push(d.caption);
+      if (d.walkedBack && d.requestedDate && d.servedDate) {
+        const reqDays = Math.round((new Date(d.requestedDate) - new Date(d.servedDate)) / 86400000);
+        parts.push(reqDays === 1
+          ? `Showing closest available capture (1 day earlier — EPIC typically runs 1–3 days behind).`
+          : `Showing closest available capture (${reqDays} days earlier — EPIC typically runs 1–3 days behind).`);
+      }
+      epCaption.textContent = parts.join('  ·  ');
+    }
 
     // Globe image — fade in on load
     if (globe) {
@@ -4359,7 +4380,7 @@ FAROUT turns one NASA date into a guided exhibition across four rooms: a daily i
       settle(API.apodRange(d, 7)),
       settle(API.library(state.currentTopic, d)),
       settle(API.asteroids(d)),
-      settle(API.epic()),
+      settle(API.epic(d)),
     ]);
 
     if (apodR.ok) { state.data.apod = apodR.v; renderPrimaryAPOD(apodR.v); }
@@ -4453,6 +4474,14 @@ FAROUT turns one NASA date into a guided exhibition across four rooms: a daily i
   }
 
   document.addEventListener('DOMContentLoaded', init);
+
+  // Register the service worker for offline + home-screen install.
+  // Only in HTTPS or localhost contexts; skip in environments where SW APIs are missing.
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js').catch(() => { /* silently no-op */ });
+    });
+  }
 })();
 </script>
 </body>

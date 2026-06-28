@@ -88,17 +88,14 @@ The app was later migrated from a Replit-hosted Express + pnpm-monorepo setup to
 
 ## Known Limitations
 
-- EPIC imagery is typically 1–3 days behind the current date (NASA processing delay)
+- EPIC imagery is typically 1–3 days behind the current date (NASA processing delay). When the selected date has no capture yet, Earth Pulse walks back up to 7 days to the nearest available image and labels the delta in the caption.
 - NASA DEMO_KEY is rate-limited to 30 requests/hour
 - The app is frontend-only — no database, no user accounts
 - Mission Brief Card is text-only (no image export)
-- Earth Pulse always shows the latest available EPIC image regardless of selected date
 
 ## Future Roadmap
 
-- Earth Pulse date-aware: show EPIC imagery matching the selected date
 - Mission Brief Card image export (canvas-based)
 - Mars surface imagery via NASA Mars Rovers API
 - ISS current position overlay
 - Notification mode: "something unusual is happening today"
-- PWA support for home screen installation
