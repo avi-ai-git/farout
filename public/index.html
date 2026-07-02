@@ -4,6 +4,15 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>FAROUT — The sky on any date that matters</title>
+<meta name="description" content="See the universe on any date that matters to you. NASA's image of the day, the asteroids that passed near Earth, and the planet from a million miles away — for your birthday or any day since 1995." />
+<meta name="theme-color" content="#000000" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="FAROUT — The sky on any date that matters" />
+<meta property="og:description" content="See the universe on any date that matters to you, drawn from NASA's open data." />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="FAROUT — The sky on any date that matters" />
+<meta name="twitter:description" content="See the universe on any date that matters to you, drawn from NASA's open data." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23000'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23ffb464'/%3E%3C/svg%3E" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,700;0,9..144,900;1,9..144,300;1,9..144,400&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -2335,7 +2344,7 @@
 </header>
 
 <!-- loading -->
-<div class="loading" id="loading">Loading your exhibition</div>
+<div class="loading" id="loading">Loading your journey</div>
 
 <!-- VIEW 1: CINEMATIC -->
 <main class="view cinematic active" data-screen-label="01 Cinematic" data-view-name="cinematic">
@@ -2350,7 +2359,7 @@
       <div class="room-tag-hero">Room 01 · Cosmos Signal</div>
       <div class="eyebrow"><span class="tick"></span><span id="cine-apod-eyebrow">Cosmos Signal</span></div>
       <h1 id="cine-apod-title">Loading the Cosmos…</h1>
-      <div class="apod-curator-note">The opening piece in this exhibition.</div>
+      <div class="apod-curator-note">The opening piece of this journey.</div>
       <div class="description" id="cine-apod-desc"></div>
       <div class="meta-row" id="cine-apod-meta"></div>
     </div>
@@ -2371,10 +2380,10 @@
   <section class="briefing-overview">
     <div class="bo-head">
       <div>
-        <div class="bo-eyebrow">Exhibition Route · Four Rooms</div>
-        <h2 class="bo-title">Exhibition <em>Route</em>.</h2>
-        <p class="bo-orient">Choose a date. Enter its exhibition. Walk through NASA's images, archive rooms, asteroid activity, and Earth view.</p>
-        <div class="bo-helper" id="dateHelper">Choose a date to open a different NASA exhibition.</div>
+        <div class="bo-eyebrow">The Journey · Four Rooms</div>
+        <h2 class="bo-title">The <em>Journey</em>.</h2>
+        <p class="bo-orient">Choose a date. Begin its journey. Walk through NASA's images, archive rooms, asteroid activity, and Earth view.</p>
+        <div class="bo-helper" id="dateHelper">Choose a date to open a different NASA journey.</div>
       </div>
     </div>
     <div class="bo-cards">
@@ -2383,7 +2392,7 @@
         <div class="bc-icon">✦</div>
         <div class="bc-title">Cosmos <em>Signal</em></div>
         <div class="bc-desc">What NASA chose for this date. The Astronomy Picture of the Day — one image from across the observable universe.</div>
-        <div class="bc-curator">The opening piece in this exhibition.</div>
+        <div class="bc-curator">The opening piece of this journey.</div>
         <div class="bc-footer">
           <span class="bc-status live">Live</span>
           <button class="bc-enter" data-clickable>Enter Room</button>
@@ -2393,7 +2402,7 @@
         <div class="bc-num">Corridor ·</div>
         <div class="bc-icon">◎</div>
         <div class="bc-title">The 7 <em>Signals</em></div>
-        <div class="bc-desc">Seven daily NASA images that lead into the selected date and set the pace for the exhibition.</div>
+        <div class="bc-desc">Seven daily NASA images that lead into the selected date and set the pace for the journey.</div>
         <div class="bc-curator">The archive corridor.</div>
         <div class="bc-footer">
           <span class="bc-status live">Live</span>
@@ -2436,7 +2445,7 @@
       <div class="bo-card" data-target=".mbc-section">
         <div class="bc-num">Exit ·</div>
         <div class="bc-icon">◌</div>
-        <div class="bc-title">Exhibition <em>Snapshot</em></div>
+        <div class="bc-title">Your <em>Keepsake</em></div>
         <div class="bc-desc">A compact summary of the selected date. Cosmos, corridor, archive, asteroid activity, and Earth view.</div>
         <div class="bc-curator">The closing summary.</div>
         <div class="bc-footer">
@@ -2758,7 +2767,7 @@
 <div class="keypanel" id="keypanel">
   <div class="box">
   <h3>Behind the Signal</h3>
-  <p>FAROUT requests NASA’s open data through a secure server route. The API key stays hidden. The browser only receives the finished exhibition data.</p>
+  <p>FAROUT requests NASA’s open data through a secure server route. The API key stays hidden. The browser only receives the finished journey data.</p>
     <div class="flow" aria-label="NASA data flow diagram">
       <div class="flow-row">
         <div class="flow-box">FAROUT browser</div>
@@ -3254,7 +3263,7 @@
       src: secureUrl(it.media_type === 'video' ? it.thumbnail_url : it.url),
       title: it.title,
       desc: it.explanation,
-      eyebrow: `Signal Log · ${it.date}`,
+      eyebrow: `Signal Log · ${escapeHTML(it.date)}`,
       meta: { Date: it.date, Source: 'NASA APOD' },
       idx,
     })).filter(it => it.src);
@@ -3272,10 +3281,10 @@
       el.style.setProperty('--i', idx);
       el.dataset.gallery = 'recent';
       el.dataset.index = String(idx);
-      el.dataset.lb = JSON.stringify({ src: secureUrl(url), title: it.title, desc: it.explanation, eyebrow: `Signal Log · ${it.date}`, meta: { Date: it.date, Source: 'NASA APOD' } });
+      el.dataset.lb = JSON.stringify({ src: secureUrl(url), title: it.title, desc: it.explanation, eyebrow: `Signal Log · ${escapeHTML(it.date)}`, meta: { Date: it.date, Source: 'NASA APOD' } });
       el.innerHTML = `
         <img src="${secureUrl(url)}" alt="" loading="lazy">
-        <div class="info"><div class="date">${it.date}</div><h3>${escapeHTML(it.title)}</h3></div>
+        <div class="info"><div class="date">${escapeHTML(it.date)}</div><h3>${escapeHTML(it.title)}</h3></div>
       `;
       el.addEventListener('click', () => openGalleryLB('recent', idx));
       scroll.appendChild(el);
@@ -3292,8 +3301,8 @@
       el.className = 'tile'; el.dataset.clickable = '';
       el.dataset.gallery = 'recent';
       el.dataset.index = String(idx);
-      el.dataset.lb = JSON.stringify({ src: secureUrl(url), title: it.title, desc: it.explanation, eyebrow: `Signal Log · ${it.date}`, meta: { Date: it.date, Source: 'NASA APOD' } });
-      el.innerHTML = `<img src="${secureUrl(url)}" loading="lazy"><div class="stamp">${it.date}</div>`;
+      el.dataset.lb = JSON.stringify({ src: secureUrl(url), title: it.title, desc: it.explanation, eyebrow: `Signal Log · ${escapeHTML(it.date)}`, meta: { Date: it.date, Source: 'NASA APOD' } });
+      el.innerHTML = `<img src="${secureUrl(url)}" loading="lazy"><div class="stamp">${escapeHTML(it.date)}</div>`;
       rail.appendChild(el);
     });
   }
@@ -3861,9 +3870,9 @@
 
     return {
       brief:
-`FAROUT · Exhibition Snapshot · ${dateStr}
+`FAROUT · Your keepsake · ${dateStr}
 
-FAROUT turns one NASA date into a guided exhibition across four rooms: a daily image, a seven-day signal trail, an archive theme, and live space telemetry.
+FAROUT turns one NASA date into a journey across four rooms: a daily image, a seven-day signal trail, an archive theme, and live space telemetry.
 
 ✦ Cosmos Signal: ${cosmosLine}
 ◎ Asteroid Watch: ${asteroidLine}
@@ -4173,24 +4182,24 @@ FAROUT turns one NASA date into a guided exhibition across four rooms: a daily i
     let d = new Date(Date.UTC(y, m - 1, dd));
     if (isNaN(d)) return;
     const now = new Date();
-    if (dateHelper) dateHelper.textContent = 'Loading a new exhibition for this date…';
+    if (dateHelper) dateHelper.textContent = 'Loading a new journey for this date…';
     if (loading) {
-      loading.textContent = `Retrieving exhibition for ${fmtDate(d)}…`;
+      loading.textContent = `Retrieving the sky for ${fmtDate(d)}…`;
       loading.classList.remove('hidden');
     }
     if (d < APOD_MIN) {
       d = APOD_MIN;
       datePick.value = APOD_MIN_STR;
       if (dateHelper) dateHelper.textContent = 'The archive begins on June 16, 1995.';
-      showError('That date is outside the archive. Showing the earliest available exhibition.');
+      showError('That date is outside the archive. Showing the earliest available journey.');
     } else if (d > now) {
       d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
       datePick.value = fmtDate(d);
       if (dateHelper) dateHelper.textContent = 'Future dates are not available yet.';
-      showError('That date is not available yet. Showing the most recent exhibition.');
+      showError('That date is not available yet. Showing the most recent journey.');
     } else if (dateHelper) {
       const todayStr2 = fmtDate(new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate())));
-      dateHelper.textContent = fmtDate(d) === todayStr2 ? "Today's NASA exhibition is loading…" : `Loading exhibition for ${fmtDate(d)}…`;
+      dateHelper.textContent = fmtDate(d) === todayStr2 ? "Today's NASA journey is loading…" : `Loading the sky for ${fmtDate(d)}…`;
     }
     state.date = d; localStorage.setItem(LS_DATE, fmtDate(d)); loadAll();
   });
@@ -4347,7 +4356,7 @@ FAROUT turns one NASA date into a guided exhibition across four rooms: a daily i
 
   async function loadAll() {
     if (loading) {
-      loading.textContent = `Retrieving exhibition for ${fmtDate(state.date)}…`;
+      loading.textContent = `Retrieving the sky for ${fmtDate(state.date)}…`;
       loading.classList.remove('hidden');
     }
     const d = state.date;
@@ -4374,7 +4383,7 @@ FAROUT turns one NASA date into a guided exhibition across four rooms: a daily i
     if (epicR.ok) { state.data.epic = epicR.v; renderEarthPulse(epicR.v); } else { renderEarthPulse_error(); }
     const todayStr = fmtDate(new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate())));
     const isToday = fmtDate(d) === todayStr;
-    if (dateHelper) dateHelper.textContent = isToday ? "You're viewing today's NASA exhibition." : `Viewing the ${fmtDate(d)} exhibition. Choose a date to explore another.`;
+    if (dateHelper) dateHelper.textContent = isToday ? "You're viewing today's NASA journey." : `Viewing the ${fmtDate(d)} journey. Choose a date to explore another.`;
     // Update Today button highlight
     $('#dayTodayBtn')?.classList.toggle('is-today', isToday);
     // Update Next button — disable if already on today
@@ -4428,9 +4437,9 @@ FAROUT turns one NASA date into a guided exhibition across four rooms: a daily i
       localStorage.setItem(LS_DATE, fmtDate(d));
       if (dateHelper) {
         const isToday = fmtDate(d) === fmtDate(todayUTC);
-        dateHelper.textContent = isToday ? "Today's NASA exhibition is loading…" : `Loading exhibition for ${fmtDate(d)}…`;
+        dateHelper.textContent = isToday ? "Today's NASA journey is loading…" : `Loading the sky for ${fmtDate(d)}…`;
       }
-      if (loading) { loading.textContent = `Retrieving exhibition for ${fmtDate(d)}…`; loading.classList.remove('hidden'); }
+      if (loading) { loading.textContent = `Retrieving the sky for ${fmtDate(d)}…`; loading.classList.remove('hidden'); }
       loadAll();
     }
 
@@ -4440,8 +4449,8 @@ FAROUT turns one NASA date into a guided exhibition across four rooms: a daily i
       state.date = todayUTC;
       datePick.value = fmtDate(todayUTC);
       localStorage.setItem(LS_DATE, fmtDate(todayUTC));
-      if (dateHelper) dateHelper.textContent = "Today's NASA exhibition is loading…";
-      if (loading) { loading.textContent = `Retrieving today's exhibition…`; loading.classList.remove('hidden'); }
+      if (dateHelper) dateHelper.textContent = "Today's NASA journey is loading…";
+      if (loading) { loading.textContent = `Retrieving today's sky…`; loading.classList.remove('hidden'); }
       loadAll();
     }
 
